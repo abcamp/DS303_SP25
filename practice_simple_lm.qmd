@@ -1,7 +1,7 @@
 ---
 title: "Practice: Simple Linear Regression"
 author: 
-  - "Student Name"
+  - "Cade Garcia"
   - "DS303, SP25"
   - "Prof. Amber Camp"
 date: 1/17/25
@@ -32,17 +32,13 @@ Yes! Despite, again, basically being the same thing, the difference in notation 
 
 What is the difference between *y* = *b~0~* + *b~1~x* and *y* = *mx* + *b*, and when might we use one over the other? Please use your own words
 
-#### Answer:
-
-(write your answer here)
+#### Answer: They are very similar both having a slope multiplied by an independent variable and an intercept. The difference is that one is for slope and the other is for regression. Slope intercept finds a mathematical relationship whereas the regression equation uses estimated data as parameters.
 
 ### Question 2
 
 Think back to our class discussion and your previous studies in math. Tell me below what each part of the equation *y* = *b~0~* + *b~1~x* means. Do this from memory if you can!
 
-#### Answer:
-
-(write your answer here)
+#### Answer: *b~0~* is the intercept and *b~1~* is the slope, x is the independent variable.
 
 ## Let's try it
 
@@ -67,7 +63,8 @@ You can just call upon the data (it's already in the package). I'll get you star
 
 ```{r}
 head(Boston)
-
+#how i would see all the columns and rows
+View(Boston)
 ```
 
 We learned in class that we can apply a simple linear regression using `lm`. Here is the basic format:
