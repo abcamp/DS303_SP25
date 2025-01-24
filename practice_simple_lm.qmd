@@ -78,13 +78,13 @@ model <- lm(y ~ x, data=df)
 Use the above basic format to create a linear regression model to predict the **median home value** (medv) based on the **percentage of lower status population** (lstat), using the data from the 'Boston' dataset. Assign it to the variable `lm.model`.
 
 ```{r}
-
+lm.model <- lm(medv ~ lstat, data = Boston)
 ```
 
 If you set it up right, you should be able to run your model name in the below code chunk and view the basic model output. Give it a try:
 
 ```{r}
-
+lm.model
 ```
 
 ### Question 5
@@ -93,7 +93,7 @@ What is your model output telling you?
 
 #### Answer
 
-(write your answer here)
+Its saying the median home value decreases by (-)0.5728 for every 1 percent increase in lower status population.
 
 You can also try `summary(lm.model)`.
 
@@ -107,7 +107,7 @@ What additional information do you get from this summary of the model output?
 
 #### Answer
 
-(write your answer here)
+You get the min and max values in the data which allows you to view outliers instead of medians. You also get Standard deviation error which is the error estimate that our model output was due to chance; 0.5 is pretty low which I think means this model had a dependable outcome. The summary function also has t value which im unsure what that does.
 
 ## confint() and predict()
 
@@ -127,7 +127,7 @@ What do you think the above `confint()` and `predict()` information means? It's 
 
 #### Answer
 
-(write your answer here)
+I think confint() and predict() gives confidence and prediction values for our outputs which tells us how accurate the model is?
 
 ## Visualizing
 
@@ -143,7 +143,9 @@ abline(lm.model)
 Can you convert the above code chunk to `ggplot`? Try below. Have fun with editing the appearance of your plot if you'd like :)
 
 ```{r}
-
+library(ggplot2)
+ggplot(data="Boston", aes(x = medv, y = lstat) +
+         geom_point())
 ```
 
 In a future class, we'll explore some diagnostic plots and what that means for evaluating models. For now, just run the below and have a look:
