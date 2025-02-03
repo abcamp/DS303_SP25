@@ -203,3 +203,19 @@ Criminal rate increases by 0.10779 for every 1 increase in age. Our model states
 ## The end!
 
 That's it for now. Please feel free to raise questions in class or via email!
+
+## Feb 3 Classwork
+
+```{r}
+library(MASS)
+library(ISLR2)
+library(lme4)
+library(ggplot2)
+
+m1 <- lm(crim ~ rm + ptratio + medv, data = Boston)
+summary(m1)
+```
+
+### Findings
+
+There is a **low** **correlation** between per capita crime rate by town and the average number of rooms per dwelling. However, there is a high correlation between per capita crime rate by town and pupil-teacher ratio by town. The increase is 0.4970 per capita crime rate by town for every 1 increase in pupil-teacher ratio.
