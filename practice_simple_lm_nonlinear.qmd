@@ -1,0 +1,184 @@
+---
+title: "Practice: Non-linear Transformations of Predictors"
+author: 
+  - "Student Name"
+  - "DS303, SP25"
+  - "Prof. Amber Camp"
+date: 2/5/25
+format: html
+editor: visual
+theme: spacelab
+---
+
+## Non-linear Transformations of Predictors
+
+Using non-linear transformations of predictors, like adding `lstat2` in a regression model, can help capture non-linear relationships between the predictors and the response variable.
+
+Here's why this can be beneficial:
+
+1.  **Improved Fit**: If the relationship between the predictor and the response is not strictly linear, incorporating polynomial terms can improve the model's ability to fit the data.
+
+2.  **Flexibility**: By including terms like `lstat2`, you allow the model to adjust more flexibly to the underlying data patterns.
+
+3.  **Capturing Non-Linear Effects**: In many real-world situations, increases in one variable may have diminishing or increasing effects on another. For instance, the impact of `lstat` on `medv` may not be uniform across the whole range.
+
+4.  **Model Diagnostics**: By examining models with and without the non-linear terms, you can evaluate which model better explains the variability in the response variable, often assessed using criteria like R-squared or AIC.
+
+## Let's try it
+
+Start by loading the `MASS` and `ISLR2` packages, and also `lme4` and `tidyverse`. For this exercise, we'll continue with the `Boston` data.
+
+```{r, echo = FALSE, message = FALSE}
+# install.packages("ISLR2")
+# install.packages("lme4")
+
+library(MASS)
+library(ISLR2)
+library(lme4)
+library(tidyverse)
+```
+
+## Boston Housing Data
+
+Along with linear models, the `lm()` function can handle non-linear transformations of predictors too! For instance, if you have a predictor `lstat`, you can create a new predictor `lstat2` using `I(lstat^2)`. We use the `I()` function because the `^` symbol has a special role in formula objects, and wrapping it this way helps us use the standard R method to raise `lstat` to the power of 2. Now, let’s run a regression of `medv` on both `lstat` and `lstat2`!
+
+```{r}
+data(Boston) # load the Boston data
+```
+
+### Basic linear regression syntax
+
+As review, here is the basic model.
+
+```{r}
+# simple linear regression
+model <- lm(y ~ x, data=df)
+
+# multiple linear regression
+model <- lm(y ~ x + z, data=df)
+
+# multiple linear regression with an interaction term
+model <- lm(y ~ x * z, data=df)
+
+# spelled out/long form of the above. they do the same thing
+# simple linear regression
+model <- lm(y ~ x + z + x:z, data=df)
+```
+
+### Visualize first
+
+Make a scatterplot!
+
+```{r}
+scatter = ggplot(Boston, aes(medv, lstat)) +
+  geom_point()
+scatter
+```
+
+### Fit the model with a quadratic term
+
+```{r}
+lm.quad <- lm(medv ~ lstat + I(lstat^2), data = Boston) 
+summary(lm.quad)
+```
+
+The very small *p*-value for the quadratic term indicates that it significantly enhances the model. To better understand how much better the quadratic fit is compared to the linear fit, we can use `anova()` for a detailed comparison.
+
+```{r}
+lm.simple <- lm(medv ~ lstat, data = Boston) # run the simple model
+# summary(lm.simple) # we have reviewed versions of this model in previous classes
+
+# compare the two models
+anova(lm.simple, lm.quad)
+```
+
+`Model 1` represents the linear submodel with just one predictor, `lstat`, while `Model 2` is the larger quadratic model that includes both `lstat` and `lstat2`.
+
+The `anova()` function conducts a hypothesis test to compare these two models. The null hypothesis states that both models fit the data equally well, while the alternative hypothesis suggests that the full model is better.
+
+Here, the *F*-statistic is 135, and the corresponding *p*-value is nearly zero. This strongly indicates that the model with both `lstat` and `lstat2` is much better than the one with only `lstat`. This finding aligns with earlier observations of non-linearity in the relationship between `medv` and `lstat`.
+
+### Visualize again, with the regression lines
+
+```{r}
+# linear regression (striaght line)
+ggplot(Boston, aes(x = lstat, y = medv)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ x, color = "blue")
+  
+```
+
+Build another plot adding the quadratic term).
+
+```{r}
+ggplot(Boston, aes(x = lstat, y = medv)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ x + I(x^2), color = "blue")
+  
+```
+
+```{r}
+# Line using Poly()
+ggplot(Boston, aes(x = lstat, y = medv)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ x + poly(x, 5), color = "blue")
+```
+
+### Higher order polynomials
+
+To create a cubic fit, we can add a predictor in the form of `I(X^3)`. However, this method can become cumbersome for higher-order polynomials. A more efficient approach is to use the `poly()` function to generate the polynomial directly within `lm()`. For instance, the following command creates a fifth-order polynomial fit:
+
+```{r}
+lm.fit5 <- lm(medv ~ poly(lstat, 5), data = Boston)
+summary(lm.fit5)
+```
+
+### Question
+
+The output here looks a little different from what we have been looking at. See what you can find online about this and try to describe it in your own words:
+
+Poly grabs random data points to compare within the model
+
+### Continue exploring the model
+
+Below, compare `lm.fit5` with `lm.quad`. What do you find?
+
+```{r}
+lm.fit10 = lm(medv ~ poly(lstat^10), data = Boston)
+summary(lm.fit10)
+
+anova(lm.fit10, lm.quad)
+```
+
+Try a higher order polynomial of your choice and compare with other models you've run. What is the best model for this data? (You can also try a logarithmic transformation using `log()`.)
+
+```{r}
+# My own model
+lm.fitty = lm(medv ~ lstat + I(lstat^2) + log(lstat^5), data = Boston)
+summary(lm.fitty)
+```
+
+### Your turn!
+
+Continue using the Boston data set for now, but pick a couple other variables. As many as you want.
+
+### Visualize
+
+Make a scatterplot to visualize the relationship between your variables.
+
+```{r}
+ggplot(Boston, aes(x = lstat, y = medv)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ x + I(x^2) + log(x, 5), color = "blue")
+```
+
+### Transform your predictors
+
+See if you can apply polynomials to find a better fit. Be sure to compare your model with the simple `lm()`.
+
+```{r}
+lm.betterfit = lm(medv ~ lstat + I(lstat^10) + log(lstat^5), data = Boston)
+summary(lm.betterfit)
+
+anova(lm.betterfit, lm.fitty, lm.fit5, lm.quad)
+```
