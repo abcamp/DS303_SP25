@@ -168,6 +168,12 @@ ggplot(carseats, aes(ShelveLoc, Price)) +
 
 lm.price shows us something similar to lm.shelf. The medium shelf location has a positive correlation with price (relative to a bad shelf location). A good shelf location has a higher positive correlation with price. However, I can spot two differences. The first that i see thanks to the box plot is that there are a lot more outliers in the data. The second one is in the summary of the model. The P values of the models are not statistically significant!
 
+IN CLASS interpretation: Intercept represents \$114 per carseat on a bad shelf location (which is the set baseline for our model). Good shelf location predicts a \$3.60 increase, a \$1.38 increase in price for medium shelf location.
+
+**`R squared`** : explains very little of the variation in price. 0.0026 means that only about 0.26% of variation in price is explained by the shelf location.
+
+**`Low F statistic`** : and high p value indicates that the shelf location does not have a statistically significant impact on the variation in 222price. The results suggests that shelf location is **not a meaningful predictor** of car seat prices in this model.
+
 ### Predict Sales using all variables
 
 Below, fit a linear regression model to predict `Sales` that includes ALL variables as well as a few interaction terms of your choice.
@@ -187,4 +193,6 @@ Variables like CompPrice, Income, and Advertising positively correlate with Sale
 
 Discuss the practical implications of your findings. How can this model inform business decisions regarding pricing, advertising, or product placement, etc?
 
-The business would have to invest most of their efforts making sure their car seats are placed in good spots haha. Otherwise, the next predictor that is worth looking into is Advertising as it is significant and has the closest predictor value to 1 (0.123...)
+The business would have to invest most of their efforts making sure their car seats are placed in good spots haha. Otherwise, the next predictor that is worth looking into is Advertising as it is significant and has the closest predictor value to 1 (0.123...).
+
+IN CLASS : Don't consider them correlated, they are not! They are both good investments according to the model but only when they are considered independently.
