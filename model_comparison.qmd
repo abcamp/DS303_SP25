@@ -1,0 +1,216 @@
+---
+title: "Qualitative Predictors"
+author: 
+  - "Student Name"
+  - "DS303, SP25"
+  - "Prof. Amber Camp"
+date: 2/12/25
+format: html
+toc: true
+editor: visual
+theme: spacelab
+---
+
+## Model Comparison
+
+We will learn to compare models using anova, AIC, and stepwise regression.
+
+## Let's try it
+
+These packages are probably becoming pretty familiar by now.
+
+```{r, echo = FALSE, message = FALSE}
+library(lme4)
+library(tidyverse)
+```
+
+## mtcars data
+
+For this exercise, we'll use `mtcars`, a built-in data set. Chances are you have seen these data before!
+
+Load the data and inspect it a little:
+
+```{r}
+# install.packages("skimr") # install if needed
+mtcars <- mtcars
+skim_mtcars <- skimr::skim(mtcars)
+View(skim_mtcars)
+```
+
+There are 11 different variables here. To make sure we understand what each one is, look at the documentation. It'll show up in your Help panel (probably to the right of this).
+
+```{r}
+?mtcars
+```
+
+You can always inspect with a good ol' `summary()`, too. Is this old news? Yes, but inspecting your data is always important and useful.
+
+```{r}
+summary(mtcars)
+```
+
+## EDA
+
+Exploratory Data Analysis is another important-but-not-new step. Let's say we are interested in predicting mpg based on various other variables. Produce visuals below to explore and examine the relationship between variables.
+
+```{r}
+ggplot(mtcars, aes(x = wt, y = mpg)) +
+  geom_point()
+```
+
+## Linear Regression
+
+Form a hypothesis about what variables may be useful to predict `mpg` and build your linear regression model below. You can include multiple variables.
+
+```{r}
+m1 <- lm(mpg ~ wt, data = mtcars)
+summary(m1)
+```
+
+Run one more model that includes one more variable.
+
+```{r}
+m2 <- lm(mpg ~ wt + hp, data = mtcars)
+summary(m2)
+```
+
+## ANOVA for model comparison
+
+ANOVA stands for ANalysis Of VAriance. ANOVA is traditionally used to compare means across different groups to see if there's any statistically significant difference between them. However, when it comes to model comparison, ANOVA can be interpreted as performing a **likelihood ratio test.**
+
+When used for model comparison, ANOVA compares the fit of different models (such as one with more predictors or a more complex structure) by evaluating how much better the more complex model explains the data compared to a simpler model. This is done by comparing the likelihoods of the models using a ratio, which is essentially the basis of a likelihood ratio test.
+
+Typically you will want the models you are comparing to be **nested** in structure. **Nested models** refer to two models where one is a simpler version of the other.
+
+ANOVA is great to [**check for the significance of adding a predictor.**]{.underline}
+
+#### Example of nested models
+
+-   **Model 1 (simpler)**: `y ~ x1`
+
+-   **Model 2 (more complex)**: `y ~ x1 + x2`
+
+-   **Model 3 (more complex)**: `y ~ x1 + x2 + x3 + x4`
+
+#### Example of models that are NOT nested
+
+-   **Model 4**: `y ~ x1 + x2`
+-   **Model 5**: `y ~ x3 + x4`
+
+To compare models using ANOVA, you just apply the model names within `anova()`.
+
+```{r}
+anova(m1, m2) # order matters
+```
+
+-   `Df` = degrees of freedom. 1 = 1 more parameter
+
+-   `RSS` = Residual Sum of Squares. This represents the unexplained variance in `mpg` after fitting the model.The lower the RSS, the better the model fits the data.
+
+-   `Sum of Sq` = This is the **reduction in unexplained variance** when adding a predictor. (278.32−195.05=83.274)
+
+-   `F-statistic`is used to test whether the difference in model fit (RSS) is statistically significant. The larger the F-value, the stronger the evidence that the more complex model is significantly better than the simpler model.
+
+-   `Pr(>F)` = *p*-value. This means the difference in fit between `m1` and `m2` is **highly significant**.
+
+### Switch the order of your models in the `anova()` and see what you get
+
+```{r}
+anova(m2, m1)
+```
+
+### Build another model
+
+Let's add another variable.
+
+```{r}
+m3 <- lm(mpg ~ wt + hp + disp, data = mtcars)
+summary(m3)
+```
+
+Compare `m2` and `m3`.
+
+```{r}
+anova(m2, m3)
+```
+
+`anova()` is only going to make sense with nested models. And, typically, you'd want to compare models that are adjacent to one another (only differing by one term). But that is not strictly required. For example, compare `m1` and `m3` even though they are two terms apart.
+
+```{r}
+anova(m1, m3)
+```
+
+Which model do we want to use?
+
+## **Use AIC to Compare Models**
+
+Another useful criterion for comparing models is the **AIC** (Akaike Information Criterion). A lower AIC value indicates a better-fitting model.
+
+Use AIC to compare model fit while considering model complexity.
+
+```{r}
+AIC(m1, m2)
+```
+
+## Stepwise regression (stepwise comparison)
+
+Involves comparing, step by step, models against each other in order to find the optimal model. Can look at AIC, BIC, or *p*-values. For our purposes, let's stick with AIC.
+
+Pros:
+
+-   **Can be automated**: It helps in automating the process of variable selection, particularly in cases with many predictors.
+-   **Can improve model performance**: By removing unnecessary predictors, it can prevent overfitting and improve the model's generalizability.
+
+Cons:
+
+-   **Risk of overfitting**: Stepwise methods can sometimes overfit the data, especially when the number of predictors is large.
+-   **Instability**: The results of stepwise regression can be sensitive to small changes in the data (i.e., the choice of which predictors to include/exclude can vary if the data changes slightly).
+-   **Not always optimal**: Stepwise regression does not guarantee the best possible model. It may miss important predictors or overfit the data.
+
+When automating stepwise regression, you can do forward selection, backward elimination, or bidirectional.
+
+-   **Forward Selection**:
+
+    -   Start with no predictors in the model (just the intercept).
+
+    -   Add predictors one by one, choosing the one that improves the model the most based on a chosen criterion (e.g., the lowest p-value or the smallest AIC).
+
+    -   Continue adding predictors until adding any more does not improve the model significantly.
+
+-   **Backward Elimination**:
+
+    -   Start with a model that includes all potential predictors.
+
+    -   Remove predictors one by one, starting with the least significant predictor (the one with the highest p-value).
+
+    -   Continue removing predictors until the remaining predictors are all significant based on a chosen criterion (e.g., p-values below a certain threshold).
+
+-   **Stepwise (Bidirectional)**:
+
+    -   This combines both **forward selection** and **backward elimination**.
+
+    -   Start with an initial set of predictors, and then iteratively add or remove predictors based on their significance.
+
+    -   This method is more flexible because it can add or remove variables at each step, depending on whether their inclusion improves the model or not.
+
+### Let's try stepwise regression!
+
+Start with all the terms, for illustration purposes. We'll do bidirectional comparison (using `"both"`), but you could also do `"forward"` or `"backward"`.
+
+```{r}
+m.all <- lm(mpg ~ ., data = mtcars)
+summary(m.all)
+
+stepwise_model <- step(m.all, direction = "both")
+```
+
+This analysis gives us a recommendation of `mpg ~ wt + qsec + am`. Let's try comparing this model with our best model from above.
+
+```{r}
+m.best <- lm(mpg ~ wt + qsec + am, data = mtcars)
+summary(m.best)
+
+anova(, m.best) # doesn't really work because these models aren't nested, but you can try!
+
+# how would you fix this?
+```
