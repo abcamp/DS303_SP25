@@ -13,7 +13,7 @@ theme: spacelab
 
 ## Model Comparison
 
-So far, we have used the `Boston` data to explore variables that are all numerical/quantitative. In this document, we will examine data that is qualitative in nature.
+We will learn to compare models using anova, AIC, and stepwise regression.
 
 ## Let's try it
 
@@ -84,7 +84,7 @@ Typically you will want the models you are comparing to be **nested** in structu
 
 ANOVA is great to [**check for the significance of adding a predictor.**]{.underline}
 
-#### Example of nested models
+#### Examples of nested models
 
 -   **Model 1 (simpler)**: `y ~ x1`
 
@@ -105,7 +105,7 @@ anova(m1, m2) # order matters
 
 -   `Df` = degrees of freedom. 1 = 1 more parameter
 
--   `RSS` = Residual Sum of Squares. This represents the unexplained variance in `mpg` after fitting the model.The lower the RSS, the better the model fits the data.
+-   `RSS` = Residual Sum of Squares. This represents the unexplained variance in `mpg` after fitting the model. The lower the RSS, the better the model fits the data.
 
 -   `Sum of Sq` = This is the **reduction in unexplained variance** when adding a predictor. (278.32−195.05=83.274)
 
@@ -138,6 +138,9 @@ anova(m2, m3)
 
 ```{r}
 anova(m1, m3)
+
+anova(m1, m2)
+anova(m2, m3)
 ```
 
 Which model do we want to use?
@@ -198,10 +201,10 @@ When automating stepwise regression, you can do forward selection, backward elim
 Start with all the terms, for illustration purposes. We'll do bidirectional comparison (using `"both"`), but you could also do `"forward"` or `"backward"`.
 
 ```{r}
-# m.all <- lm(mpg ~ ., data = mtcars)
-# summary(m.all)
-# 
-# stepwise_model <- step(m.all, direction = "both")
+m.all <- lm(mpg ~ ., data = mtcars)
+summary(m.all)
+
+stepwise_model <- step(m.all, direction = "both")
 ```
 
 This analysis gives us a recommendation of `mpg ~ wt + qsec + am`. Let's try comparing this model with our best model from above.
