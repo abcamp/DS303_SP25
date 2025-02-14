@@ -1,0 +1,234 @@
+---
+title: "Qualitative Predictors"
+author: 
+  - "Cade Garcia"
+  - "DS303, SP25"
+  - "Prof. Amber Camp"
+date: 2/14/25
+format: html
+toc: true
+editor: visual
+theme: spacelab
+---
+
+# Model Comparison, pt 2
+
+Continuing discussion on model comparison using anova, AIC, and stepwise regression.
+
+## Load packages
+
+The usual.
+
+```{r, echo = FALSE, message = FALSE}
+library(lme4)
+library(tidyverse)
+```
+
+## Data
+
+We'll use some made up data as well as the `mtcars` data for today. Remember, it's always good practice to inspect your data so that you can understand what is contained in the data set. We did that last class with these data, so we will skip it for now, but some potentially helpful code is pasted below should you need it.
+
+```{r}
+# install.packages("skimr") # install if needed
+mtcars <- mtcars # load data and assign
+
+# review your data
+# skim_mtcars <- skimr::skim(mtcars)
+# View(skim_mtcars)
+# 
+# ?mtcars
+# 
+# summary(mtcars)
+```
+
+## EDA
+
+Exploratory Data Analysis is also a pretty important step. We already did this, but I wanted to leave you with scatterplot code for your convenience.
+
+```{r}
+ggplot(mtcars, aes(x = wt, y = mpg)) +
+  geom_point()
+```
+
+## Models
+
+Models from part 1 are pasted below for reference
+
+```{r}
+m1 <- lm(mpg ~ wt, data = mtcars)
+summary(m1)
+
+m2 <- lm(mpg ~ wt + hp, data = mtcars)
+summary(m2)
+
+m3 <- lm(mpg ~ wt + hp + disp, data = mtcars)
+summary(m3)
+
+m.all <- lm(mpg ~ ., data = mtcars)
+summary(m.all)
+
+stepwise_model <- step(m.all, direction = "both")
+
+m.best <- lm(mpg ~ wt + qsec + am, data = mtcars)
+summary(m.best)
+```
+
+## ANOVA, AIC, and Stepwise Regression
+
+All of these methods are useful for selecting an optimal predictive model, but how you get to the final model really relies on understanding both how they work, and what your data mean.
+
+-   **ANOVA** helps assess whether adding (or subtracting) more predictors to a model significantly improves its fit.
+
+-   **AIC** provides a way to compare models while accounting for both fit and complexity, ensuring you don’t overfit the data.
+
+-   **Stepwise regression** automates the process of model selection, which is especially helpful when dealing with a large number of potential predictors.
+
+However, no matter which method you choose, it’s important to remember that the best model is one that balances good predictive power with simplicity. You should always interpret the results in the context of your specific data and your research question. Additionally, methods like ANOVA and stepwise regression rely on statistical assumptions, so it’s important to understand when and why you should use them.
+
+We'll practice a bit more below.
+
+## Intercept-only model
+
+#### A brief detour
+
+The intercept-only model is the simplest possible model: it predicts the outcome using only the mean of the dependent variable, without any predictors. Is that always informative? Maybe not. But here it is anyway:
+
+```{r}
+m0 <- lm(mpg ~ 1, data = mtcars) # intercept-only model
+summary(m0)
+```
+
+The syntax of `lm()` will not allow you to just leave the predictor space blank, so put a `1` there to represent the intercept.
+
+-   The intercept-only model gives the **mean** of `mpg` for all the cars in the dataset.
+
+-   The intercept being statistically significant only means that the mean of `mpg` is **significantly different from zero**. A good sanity check!
+
+-   It can serve as the **baseline** for comparing more complex models.
+
+-   Can help you understand the **central tendency** of the data, even before considering any predictors.
+
+You can read these results like, "On average, all cars in the dataset have a fuel efficiency of 20 mpg, regardless of their weight, horsepower, or any other factors." \<-- this could be good info to know
+
+Let's look at it graphically, using `wt` vs. `mpg` as a backdrop.
+
+```{r}
+m0
+coef(m0) # no slope = slope of zero
+
+ggplot(mtcars, aes(x = wt, y = mpg)) +
+  geom_point() +
+  geom_abline(intercept = mean(mtcars$mpg), slope = 0, color = "red", linetype = "dashed") +
+  labs(title = "Intercept-Only Model vs. Data")
+
+```
+
+Is `m0` a good model? No. But go ahead and compare it to another model from last class to see.
+
+```{r}
+anova(m0, m.all)
+AIC(m0, m.best, m.all, m1, m2, m3)
+```
+
+The comparison should show how much better models with predictors are at explaining the variance in `mpg` than the intercept-only model. When you are building **up** or **forward** in your model comparisons, this can be a good place to start.
+
+## Interactions and how to compare them
+
+Remember interactions?
+
+An interaction between two variables means that the effect of one predictor on the outcome variable depends on the value of another predictor. It's important to understand that the relationship between predictors and the outcome might not always be additive—there could be a combined effect.
+
+#### Another detour
+
+A couple silly examples of interactions:
+
+-   While trying to decide whether I want to go to a party tomorrow, I am trying to predict my enjoyment of the event given data from past experiences. In this example, `Thomas` and `Food` both have **main effects** on my enjoyment. But also, the presence of `Thomas` **moderates** the impact of `Food` on my enjoyment–this is the **interaction**.\
+    \
+    `lm(Enjoyment ~ Thomas + Food + Thomas:Food, data = Life)`
+
+-   You are in charge of purchasing school uniforms for every single student. You assume a normal distribution in terms of sizes (and its predictors), but you don't actually know everyone's sizes, or even who will be here next year. You could make a predictive model like this:
+
+    `lm(Size ~ Height * Weight, data = Student_stats)`
+
+    That's a pretty good model. But upon further reflection, you realize that `Height` and `Height:Weight` probably have more of an impact than `Weight` alone. You could inspect this by breaking this down into long form:
+
+    `lm(Size ~ Height + Weight + Height:Weight, data = Student_stats)`
+
+    From here, you could use `anova()` to compare different models and decide which predictors to keep.
+
+Let's fabricate some data for illustration purposes:
+
+```{r}
+# you can just run this whole thing :)
+
+# set seed for reproducibility
+set.seed(456) # set the seed of the random number generator to a fixed starting point
+
+# generate a simulated dataset
+n <- 1000  # number of students
+
+Height <- runif(n, 140, 190)  # Heights between 140 cm and 190 cm
+
+Weight <- runif(n, 40, 100)  # Weights between 40 kg and 100 kg
+
+# simulate uniform size as a function of Height, Weight, and Height:Weight
+# add some noise to make the data more realistic :)
+Size <- 50 + 0.3 * Height + 0.15 * Weight + 0.05 * Height * Weight + rnorm(n, mean = 0, sd = 3)
+Size <- 50 * (Size - min(Size)) / (max(Size) - min(Size))
+
+Student_stats <- data.frame(Size, Height, Weight)
+
+# model
+uniforms_max <- lm(Size ~ Height * Weight, data = Student_stats)
+summary(uniforms_max)
+
+# visualize the interaction
+ggplot(uniforms_max, aes(x = Height, y = Size, color = Weight)) +
+  geom_point() +
+  geom_smooth(method = "lm", aes(group = Weight), se = FALSE) +
+  labs(title = "Interaction between Height and Weight on Size",
+       x = "Height (cm)",
+       y = "Size",
+       color = "Weight (kg)") +
+  theme_minimal()
+
+```
+
+### Your turn
+
+Build a few other models you could compare using `anova()` or `AIC()` and try to select the best one.
+
+```{r}
+Uniform <- lm(Size ~ Height * Weight, data = Student_stats)
+
+Dualform <- lm(Size ~ Height + Weight + Height:Weight, data = Student_stats)
+
+Triform <- lm(Size ~ Height + Height:Weight, data = Student_stats)
+
+AIC(Uniform, Dualform, Triform)
+```
+
+## Return to `mtcars`
+
+We know a little bit about `mtcars` based on real-world experience, the `?mtcars` help documentation, and our classmates (thanks, Cade!).
+
+Last class, we explored a few different models and decided on the best model. Paste that model here:
+
+```{r}
+summary(m.best) # the model we're trying to beat! 
+```
+
+We didn't, however, explore interactions between the different predictors. We've already seen what model the stepwise regression says is best (above). Try building another model below that includes an interaction between two predictors, and see what you can do to compare and select the optimal model.
+
+```{r}
+m.challenger <- lm(mpg ~ wt + cyl:gear + disp:wt, data = mtcars)
+summary(X)
+
+AIC(m.best, m.challenger) # i cant beat it ! haha
+
+step(X, direction = "both")
+```
+
+## Assignment #2
+
+Assignment #2 will cover linear models including non-linear transformations of predictors, exploring categorical predictors, and ultimately selecting the optimal model for prediction. You will be using `diamonds` data, which includes a nice balance of continuous and categorical data. I will post it online soon, and let you know when it is there. Tentative due date is next Friday 2/21.
