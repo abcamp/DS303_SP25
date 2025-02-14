@@ -84,7 +84,7 @@ Typically you will want the models you are comparing to be **nested** in structu
 
 ANOVA is great to [**check for the significance of adding a predictor.**]{.underline}
 
-#### Examples of nested models
+#### Example of nested models
 
 -   **Model 1 (simpler)**: `y ~ x1`
 
@@ -213,7 +213,8 @@ This analysis gives us a recommendation of `mpg ~ wt + qsec + am`. Let's try com
 m.best <- lm(mpg ~ wt + qsec + am, data = mtcars)
 summary(m.best)
 
-anova(, m.best) # doesn't really work because these models aren't nested, but you can try!
+anova(m2, m.best) # doesn't really work because these models aren't nested, but you can try!
 
 # how would you fix this?
+AIC(m2, m.best)
 ```

@@ -126,7 +126,9 @@ ggplot(mtcars, aes(x = wt, y = mpg)) +
 Is `m0` a good model? No. But go ahead and compare it to another model from last class to see.
 
 ```{r}
+AIC(m0, m.best)
 
+anova(m0, m1)
 ```
 
 The comparison should show how much better models with predictors are at explaining the variance in `mpg` than the intercept-only model. When you are building **up** or **forward** in your model comparisons, this can be a good place to start.
@@ -182,7 +184,7 @@ uniforms_max <- lm(Size ~ Height * Weight, data = Student_stats)
 summary(uniforms_max)
 
 # visualize the interaction
-ggplot(uniforms, aes(x = Height, y = Size, color = Weight)) +
+ggplot(uniforms_max, aes(x = Height, y = Size, color = Weight)) +
   geom_point() +
   geom_smooth(method = "lm", aes(group = Weight), se = FALSE) +
   labs(title = "Interaction between Height and Weight on Size",
@@ -198,7 +200,15 @@ ggplot(uniforms, aes(x = Height, y = Size, color = Weight)) +
 Build a few other models you could compare using `anova()` or `AIC()` and try to select the best one.
 
 ```{r}
+uniforms_max <- lm(Size ~ Height * Weight, data = Student_stats)
 
+uniforms_long <- lm(Size ~ Height + Weight + Height:Weight, data = Student_stats)
+
+uniforms_2 <- lm(Size ~ Height + Height:Weight, data = Student_stats)
+
+uniforms_3  <- lm(Size ~ Height + Weight, data = Student_stats)
+
+anova(uniforms_long, uniforms_3)
 ```
 
 ## Return to `mtcars`
@@ -214,6 +224,18 @@ Last class, we explored a few different models and decided on the best model. Pa
 We didn't, however, explore interactions between the different predictors. We've already seen what model the stepwise regression says is best (above). Try building another model below that includes an interaction between two predictors, and see what you can do to compare and select the optimal model.
 
 ```{r}
+will <- lm(mpg ~ wt + qsec + am + wt:am , data = mtcars)
+summary(will)
+
+anova(m.best, will)
+anova(will, m.best)
+
+brandon <- lm(mpg ~ wt + qsec + am + hp + wt:hp , data = mtcars)
+summary(brandon)
+
+anova(m.best, brandon)
+
+
 
 ```
 
