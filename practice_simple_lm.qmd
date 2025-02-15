@@ -168,7 +168,7 @@ View(Boston)
 
 ### Question 9
 
-What variables are you interested in exploring using a linear regression? Just pick and `x` and a `y` and describe your research question below in plain English:
+What variables are you interested in exploring using a linear regression? Just pick an `x` and a `y` and describe your research question below in plain English:
 
 #### Answer
 
