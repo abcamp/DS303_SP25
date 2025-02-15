@@ -44,6 +44,7 @@ Along with linear models, the `lm()` function can handle non-linear transformati
 
 ```{r}
 data(Boston) # load the Boston data
+Boston <- Boston
 ```
 
 ### Basic linear regression syntax
@@ -61,7 +62,6 @@ model <- lm(y ~ x + z, data=df)
 model <- lm(y ~ x * z, data=df)
 
 # spelled out/long form of the above. they do the same thing
-# simple linear regression
 model <- lm(y ~ x + z + x:z, data=df)
 ```
 
@@ -70,7 +70,9 @@ model <- lm(y ~ x + z + x:z, data=df)
 Make a scatterplot!
 
 ```{r}
-
+scatter <- ggplot(Boston, aes(x = medv, y = lstat)) +
+  geom_point() 
+scatter
 ```
 
 ### Fit the model with a quadratic term
@@ -109,7 +111,13 @@ ggplot(Boston, aes(x = lstat, y = medv)) +
 Build another plot adding the quadratic term).
 
 ```{r}
+ggplot(Boston, aes(x = lstat, y = medv)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ I(x^2), color = "blue")
 
+ggplot(Boston, aes(x = lstat, y = medv)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ x + I(x^2), color = "blue")
   
 ```
 
@@ -128,18 +136,33 @@ The output here looks a little different from what we have been looking at. See 
 
 (Write answer here)
 
+### Visualize x\^5
+
+```{r}
+ggplot(Boston, aes(x = lstat, y = medv)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ x + poly(x, 5), color = "blue")
+```
+
 ### Continue exploring the model
 
 Below, compare `lm.fit5` with `lm.quad`. What do you find?
 
 ```{r}
-
+anova(lm.quad, lm.fit5)
 ```
 
 Try a higher order polynomial of your choice and compare with other models you've run. What is the best model for this data? (You can also try a logarithmic transformation using `log()`.)
 
 ```{r}
+lm.fit10 <- lm(medv ~ poly(lstat, 10), data = Boston)
+summary(lm.fit10)
 
+anova(lm.fit5, lm.fit10)
+
+ggplot(Boston, aes(x = lstat, y = medv)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ x + poly(x, 10), color = "blue")
 ```
 
 ### Your turn!
