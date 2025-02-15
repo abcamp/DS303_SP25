@@ -10,7 +10,7 @@ editor: visual
 theme: spacelab
 ---
 
-## Introduction to Simple Linear Regression
+## Introduction to Simple Linear Regression 
 
 This is an introduction to **simple linear regression**, a method used to model the relationship between two variables by fitting a straight line to the data. The goal is to see how one variable (the independent variable) affects another (the dependent variable).
 
