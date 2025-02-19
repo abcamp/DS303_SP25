@@ -78,6 +78,8 @@ Split into four groups. Explore your assigned coding scheme and answer the below
 
 ## Dummy Coding (a.k.a. Treatment Coding)
 
+(Selena, Ashley, Lela)
+
 1.  What comparisons are made with this coding scheme?\
     \
 
@@ -109,6 +111,8 @@ Summarize these findings. What is your reference group, and how do the other gro
 
 ## Simple Coding
 
+(Cade, Brandon, Izack)
+
 1.  What comparisons are made with this coding scheme?\
 
 2.  When is this coding scheme preferred? What types of data or analysis scenarios make this coding method particularly useful?\
@@ -136,6 +140,8 @@ Summarize these findings. What is your reference group, and how do the other gro
 
 ## Deviation Coding
 
+(Alii, Bennett, LaVelle)
+
 1.  What comparisons are made with this coding scheme?
 
 2.  When is this coding scheme preferred? What types of data or analysis scenarios make this coding method particularly useful?
@@ -162,6 +168,8 @@ Summarize these findings. Unlike dummy and simple coding, there is no traditiona
 (write here)\
 
 ## Helmert Coding
+
+(Will, Warren)
 
 1.  What comparisons are made with this coding scheme?
 
