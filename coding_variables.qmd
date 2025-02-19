@@ -1,0 +1,205 @@
+---
+title: "Coding Categorical Variables"
+author: 
+  - "Student Name"
+  - "DS303, SP25"
+  - "Prof. Amber Camp"
+date: 2/19/25
+format: html
+editor: visual
+theme: spacelab
+---
+
+## Contrast Coding Categorical Predictors
+
+Working with categorical predictors is an important aspect of building effective statistical models. Categorical predictors, also known as factors, represent qualitative data that can be organized into distinct groups, such as gender, geographic location, or product type.
+
+In R, these predictors can be integrated into various modeling techniques, helping us identify relationships and make predictions based on different *levels* of these variables.
+
+## UCLA Reference
+
+There are many resources out there, but this is one I go back to again and again. I find it really easy to understand and to also use as a reference:
+
+[**R LIBRARY CONTRAST CODING SYSTEMS FOR CATEGORICAL VARIABLES**](https://stats.oarc.ucla.edu/r/library/r-library-contrast-coding-systems-for-categorical-variables/)
+
+## Set up your environment
+
+### Load packages
+
+```{r, echo = FALSE, message = FALSE}
+library(lme4)
+library(tidyverse)
+```
+
+### Load Data
+
+Following the UCLA resource, we will use data frame called `hsb2` and focusing on the categorical variable `race`, which has four levels (1 = Hispanic, 2 = Asian, 3 = African American and 4 = Caucasian). We will use `write` as our dependent variable.
+
+```{r}
+# read in data from URL
+hsb2 = read.table('https://stats.idre.ucla.edu/stat/data/hsb2.csv', header=T, sep=",")
+```
+
+Let's create `race.f`, which is the `race` data re-labeled and also turned into factors.
+
+```{r}
+hsb2$race.f = factor(hsb2$race, labels=c("Hispanic", "Asian", "African-Am", "Caucasian"))
+```
+
+### Inspect your data
+
+Inspect your data below using `skimr`, `summary`, and `ggplot2`. You should also check out [this resource](https://www.openintro.org/data/index.php?data=hsb2), which describes the dataset.
+
+```{r}
+skim <- skimr::skim(hsb2)
+View(skim)
+
+summary(hsb2)
+summary(hsb2$race)
+summary(hsb2$race.f)
+
+ggplot(hsb2, aes(x = race.f, y = write)) +
+  geom_boxplot()
+
+ggplot(hsb2, aes(x = race.f, y = write)) +
+  geom_jitter(width = 0.2, height = 0) 
+
+```
+
+## Coding Schemes
+
+There are several different coding schemes, and you can also generate your own scheme for your own purposes. For our class, we will focus on **Dummy**, **Simple**, **Deviation**, and **Helmert** Coding.
+
+We've already seen dummy coding, but it is good to see it again.
+
+## Class activity
+
+Split into four groups. Explore your assigned coding scheme and answer the below five questions. Then, apply your coding scheme to the `hsb2` data and walk us through its interpretation.
+
+## Dummy Coding (a.k.a. Treatment Coding)
+
+1.  What comparisons are made with this coding scheme?\
+    \
+
+2.  When is this coding scheme preferred? What types of data or analysis scenarios make this coding method particularly useful?\
+    \
+
+3.  What are the advantages of this coding method? How does it simplify interpretation or enhance model performance?\
+    \
+
+4.  What are the limitations of this coding method? Are there situations where this method may lead to misleading results or interpretations?\
+    \
+
+5.  How does this coding scheme affect the coefficients in regression models? What do the coefficients represent in the context of your chosen coding method?\
+
+### Applying Dummy Coding
+
+```{r}
+# assign dummy coding
+
+
+# build and summarize your regression
+dummy <- lm(write ~ race.f, data = hsb2)
+summary(dummy)
+```
+
+Summarize these findings. What is your reference group, and how do the other groups compare with regards to their writing scores? What does the intercept value represent?\
+\
+(write here)\
+
+## Simple Coding
+
+1.  What comparisons are made with this coding scheme?\
+
+2.  When is this coding scheme preferred? What types of data or analysis scenarios make this coding method particularly useful?\
+
+3.  What are the advantages of this coding method? How does it simplify interpretation or enhance model performance?\
+
+4.  What are the limitations of this coding method? Are there situations where this method may lead to misleading results or interpretations?\
+
+5.  How does this coding scheme affect the coefficients in regression models? What do the coefficients represent in the context of your chosen coding method?
+
+### Applying Simple Coding
+
+```{r}
+# assign simple coding
+
+
+# build and summarize your regression
+simple <- lm(write ~ race.f, data = hsb2)
+summary(simple)
+```
+
+Summarize these findings. What is your reference group, and how do the other groups compare with regards to their writing scores? What does the intercept value represent?\
+\
+(write here)\
+
+## Deviation Coding
+
+1.  What comparisons are made with this coding scheme?
+
+2.  When is this coding scheme preferred? What types of data or analysis scenarios make this coding method particularly useful?
+
+3.  What are the advantages of this coding method? How does it simplify interpretation or enhance model performance?
+
+4.  What are the limitations of this coding method? Are there situations where this method may lead to misleading results or interpretations?
+
+5.  How does this coding scheme affect the coefficients in regression models? What do the coefficients represent in the context of your chosen coding method?
+
+### Applying Deviation Coding
+
+```{r}
+# assign deviation coding
+
+
+# build and summarize your regression
+dev <- lm(write ~ race.f, data = hsb2)
+summary(dev)
+```
+
+Summarize these findings. Unlike dummy and simple coding, there is no traditional reference level in deviation coding. In this context, how do the groups compare regarding their writing scores? What does the intercept value represent?\
+\
+(write here)\
+
+## Helmert Coding
+
+1.  What comparisons are made with this coding scheme?
+
+2.  When is this coding scheme preferred? What types of data or analysis scenarios make this coding method particularly useful?
+
+3.  What are the advantages of this coding method? How does it simplify interpretation or enhance model performance?
+
+4.  What are the limitations of this coding method? Are there situations where this method may lead to misleading results or interpretations?
+
+5.  How does this coding scheme affect the coefficients in regression models? What do the coefficients represent in the context of your chosen coding method?
+
+### Applying Helmert Coding
+
+```{r}
+# assign Helmert coding
+
+
+# build and summarize your regression
+helmert <- lm(write ~ race.f, data = hsb2)
+summary(helmert)
+```
+
+Summarize these findings. In Helmert coding, each level is compared to the mean of subsequent levels, rather than having a traditional reference group. In this context, how do the groups compare regarding their writing scores? What does the intercept value represent?\
+\
+(write here)
+
+## For next class: Releveling a predictor
+
+We will do this together as a class on Friday. You don't need to work ahead, but if you wanted to explore releveling, here you go.
+
+Releveling refers to the process of changing the reference level of a factor or categorical variable. This allows us to examine how different groups compare to a new reference category. By selecting a different reference level, we can gain new insights into the effects of categorical predictors in our analyses.
+
+Releveling is applicable to Dummy, Simple, and Helmert coding, but NOT deviation coding. Why?
+
+### To relevel:
+
+You can use the below to define a reference level, or you can assign new values in your contrasts matrix.
+
+```{r}
+hsb2$race.f <- relevel(hsb2$race.f, ref = "Asian")
+```
