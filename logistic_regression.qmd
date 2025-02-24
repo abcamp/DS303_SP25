@@ -1,0 +1,177 @@
+---
+title: "Logistic Regression"
+author: 
+  - "Cade Garcia"
+  - "DS303, SP25"
+  - "Prof. Amber Camp"
+date: 2/24/25
+format: html
+editor: visual
+theme: spacelab
+---
+
+## Logistic Regression
+
+You know all about linear regression now! Let's talk about logistic regression. Logistic regression is a type of regression analysis used when the dependent variable is binary (e.g., success/failure, yes/no, high/low, green/blue). It models the **probability** that a given input point belongs to a particular category.
+
+## Log Odds
+
+Logistic regression relies on log-odds to model the relationship between predictor variables and a binary outcome
+
+-   **Odds** are a way to compare the likelihood of an event occurring to the likelihood of it not occurring.
+
+-   **Log-odds** transforms the odds into a logarithmic scale.
+
+Log-odds convert probabilities into a continuous scale, enabling a linear relationship between predictors and the likelihood of an event. This transformation is key for understanding and interpreting logistic regression models.
+
+## Why not just use linear regression?
+
+**Linear regression** is not suitable for binary outcomes because:
+
+-   It can predict values outside \[0, 1\]
+
+-   It assumes a linear relationship, while binary outcomes follow an S-shaped curve
+
+The logistic function, or sigmoid function, solves this by mapping any real number to (0, 1).
+
+## Today: Practical stuff first
+
+Focus will be on the practical application. We may cover a bit more in-depth theory on Wednesday.
+
+By the end of today's lesson, students will be able to:
+
+-   Understand the concept of logistic regression and its use cases
+
+-   Interpret logistic regression coefficients
+
+-   Evaluate model fit and performance
+
+-   Implement logistic regression in R
+
+## Load Packages
+
+Standard suspects: `lme4` and `tidyverse`. For this exercise, we'll use the `Default` data from the `ISLR2` package.
+
+```{r, echo = FALSE, message = FALSE}
+# install.packages("ISLR2")
+# install.packages("lme4")
+
+library(lme4)
+library(tidyverse)
+library(ISLR2)
+```
+
+## Load & Explore Data
+
+```{r}
+default <- Default
+skim_data <- skimr::skim(default)
+View(skim_data)
+
+?Default
+```
+
+What is this data showing? Which data is binary here?
+
+Credit card default data. Binary variables include `default` and `student`.
+
+## Basic logistic regression syntax
+
+Here is the basic model.
+
+```{r}
+# logistic regression
+model <- glm(y ~ x, data = df, family = binomial)
+
+# make sure you are using glm(), not lm()
+# make sure you include family = binomial to constrain probabilities between 0 and 1 and transform the probabilities to the log-odds scale.
+```
+
+## Visualize first
+
+Explore the data visually.
+
+```{r}
+# use ggplot
+library(ggplot2)
+ggplot()
+ggplot(data = default, aes(default, balance, color = student)) +
+  geom_boxplot()
+```
+
+## Apply the logistic regression
+
+Edit the below to predict `student` status based on `income`.
+
+```{r}
+student <- glm(student ~ income, data = default, family = binomial)
+summary(student)
+```
+
+Interpretation of Estimate coefficients:
+
+-   **(Intercept)**: 9.436
+
+    -   This is the log-odds of being a student when income is zero.
+
+-   **income**: -3.945e-04 (or -0.0003945)
+
+    -   This coefficient represents the change in the log-odds of being a student for a one-unit increase in income. Since the coefficient is negative, it suggests that **as income increases, the log-odds of being a student decreases**.
+
+### Include `default`
+
+```{r}
+student2 <- glm(student ~ income + default, data = default, family = binomial)
+summary(student2)
+```
+
+Interpretation of Estimate coefficients:
+
+-   **defaultYes**: 3.828e-01 (or 0.3828)
+
+    -   Indicates that being in the "Yes" category for `default` (i.e., having defaulted) is associated with an increase of approximately 0.3828 in the log-odds of being a student, when compared to `defaultNo` (those who have not defaulted). This effect is not significant, however.
+
+### Try another
+
+Edit the code below to predict `default` status based on `income`.
+
+```{r}
+default_model <- glm(default ~ income, data = default, family = binomial)
+summary(default_model)
+```
+
+Interpret the results below:
+
+If income increases, the odds that someone defaults decreases (by 8.35)
+
+## Model comparison
+
+Choose either `student` or `default` and try to build the optimal model that predicts that status. Start by including all other terms, and then perform model comparison to find the best model to predict the status you chose.
+
+```{r}
+model_compare <- glm(default ~ ., data = default, family = binomial)
+summary(model_compare)
+```
+
+Interpret your findings here:
+
+Compared to a non-student, if the person is a student, the odds of them defaulting decrease by -6.468e This is significant in the model
+
+The odds of defaulting increases by 5.737e based on the balance of the person. If the balance is higher, the chance of defaulting is higher (and vice versa). This predictor is very significant in the model.
+
+The odds of someone defaulting increases by 3 if the income is high? This is not at all significant in the model
+
+## Was that too easy?
+
+Load `mtcars` and build a model to predict whether transmission is automatic or manual. You will have to perform a transformation on the transmission data first.
+
+```{r}
+mtcars <- mtcars
+
+?mtcars # use this to remind yourself of which variables are present
+
+# transform transmission data to correct type
+
+
+# build model
+```
