@@ -77,7 +77,7 @@ contrasts(carseats$ShelveLoc)
 
 Here is how to interpret that matrix.
 
--    `R` has created a `ShelveLocGood` dummy variable that takes on a value of 1 if the shelving location is **good**, and 0 otherwise.
+-   `R` has created a `ShelveLocGood` dummy variable that takes on a value of 1 if the shelving location is **good**, and 0 otherwise.
 
 -   It has also created a `ShelveLocMedium` dummy variable that equals 1 if the shelving location is **medium**, and 0 otherwise.
 
