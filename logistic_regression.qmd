@@ -73,7 +73,7 @@ View(skim_data)
 
 What is this data showing? Which data is binary here?
 
-(Write answer)
+Answer: Credit card default data. Binary variables incl `default` and `student`. Continuous variables include `income` and `balance`.
 
 ## Basic logistic regression syntax
 
@@ -93,7 +93,36 @@ Explore the data visually.
 
 ```{r}
 # use ggplot
+# density plot: balance
+ggplot(default, aes(x = balance)) +
+  geom_density(fill = "lightblue", alpha = 0.6) +
+  labs(title = "Balance Distribution", x = "Balance", y = "Density")
 
+# density plot: balance distribution by default status
+ggplot(default, aes(x = balance, fill = default)) +
+  geom_density(alpha = 0.6, position = "identity") +
+  labs(title = "Balance Distribution by Default Status", x = "Balance", y = "Density")
+# represents the proportion of customers with balances in that range, allowing you to see where balances are concentrated for each group
+
+# boxplot for balance by default status
+ggplot(default, aes(x = default, y = balance)) +
+  geom_boxplot(fill = "lightblue") +
+  labs(title = "Balance by Default Status", x = "Default Status", y = "Balance")
+
+# density plot: income
+ggplot(default, aes(x = income)) +
+  geom_density(fill = "lightgreen", alpha = 0.6) +
+  labs(title = "Income Distribution", x = "Income", y = "Density")
+
+# income vs. default status
+ggplot(default, aes(x = income, fill = default)) +
+  geom_density(alpha = 0.6, position = "identity") +
+  labs(title = "Income Distribution by Default Status", x = "Income", y = "Density")
+
+# boxplot for income by default status
+ggplot(default, aes(x = default, y = income)) +
+  geom_boxplot(fill = "lightgreen") +
+  labs(title = "Income by Default Status", x = "Default Status", y = "Income")
 ```
 
 ## Apply the logistic regression
@@ -101,7 +130,7 @@ Explore the data visually.
 Edit the below to predict `student` status based on `income`.
 
 ```{r}
-student <- glm(y ~ x, data = default, family = binomial)
+student <- glm(student ~ income, data = default, family = binomial)
 summary(student)
 ```
 
@@ -118,7 +147,7 @@ Interpretation of Estimate coefficients:
 ### Include `default`
 
 ```{r}
-student2 <- glm(y ~ x, data = default, family = binomial)
+student2 <- glm(student ~ income + default, data = default, family = binomial)
 summary(student2)
 ```
 
@@ -133,12 +162,21 @@ Interpretation of Estimate coefficients:
 Edit the below to predict `default` status based on `income`.
 
 ```{r}
-model <- glm(y ~ x, data = df, family = binomial)
+default_model <- glm(default ~ income, data = default, family = binomial)
+summary(default_model) 
 ```
 
 Interpret the results below:
 
-(Write answer)
+Interpretation of Estimate coefficients:
+
+-   **(Intercept)**: -3.094e+0
+
+    -   This is the log-odds of defaulting on your credit card when income is zero.
+
+-   **income**: -8.353e-06
+
+    -   This coefficient represents the change in the log-odds of defaulting on your credit card for every one-unit increase in income. Since the coefficient is negative, it suggests that **as income increases, the log-odds of defaulting decreases**.
 
 ## Model comparison
 
