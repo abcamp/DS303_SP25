@@ -1,5 +1,5 @@
 ---
-title: "Qualitative Predictors"
+title: "Model Comparison"
 author: 
   - "Student Name"
   - "DS303, SP25"
