@@ -1,0 +1,161 @@
+---
+title: "Logistic Regression part 2"
+author: 
+  - "Student Name"
+  - "DS303, SP25"
+  - "Prof. Amber Camp"
+date: 2/26/25
+format: html
+editor: visual
+theme: spacelab
+---
+
+## Logistic Regression, part 2
+
+Last class, we applied logistic regression to the `Default` data. Let's spend a bit more time this class covering *what* logistic regression is and how it works.
+
+Logistic regression is a type of regression analysis used when the dependent variable or outcome is **binary**. It models the p**robability that a given input point belongs to a particular category**.
+
+The logistic model is defined as:
+
+$\text{logit}(p) = \log\left(\frac{p}{1-p}\right) = \beta_0 + \beta_1x_1 + \beta_2x_2 + \dots + \beta_nx_n$
+
+where $p$ is the probability of the outcome being 1.
+
+## Log Odds
+
+Logistic regression relies on log-odds to model the relationship between predictor variables and a binary outcome
+
+-   **Odds** are a way to compare the likelihood of an event occurring to the likelihood of it not occurring.
+
+-   **Log-odds** transforms the odds into a logarithmic scale.
+
+Log-odds convert probabilities into a continuous scale, enabling a linear relationship between predictors and the likelihood of an event. This transformation is key for understanding and interpreting logistic regression models.
+
+## Why not just use linear regression (again)?
+
+**Linear regression** is not suitable for binary outcomes because:
+
+-   It can predict values outside \[0, 1\] \<- this range is fundamental to understanding probability
+
+-   It assumes a linear relationship, while binary outcomes follow an S-shaped curve
+
+-   In reality, the relationship between predictors and the probability of an event occurring is often nonlinear. For example, small changes in a predictor might not have a substantial impact on the outcome probability when the predictor value is very high or very low, but could have a large impact in the middle range.
+
+The logistic function, or sigmoid function, addresses this by compressing the output to a range between 0 and 1, making it ideal for probability estimation.
+
+It transforms a linear combination of predictors through the following function:
+
+$$ p = \frac{1}{1 + e^{-z}} \text{, where } z = \beta_0 + \sum_{i=1}^n \beta_i x_i $$
+
+The logistic function, or sigmoid function, solves this by mapping any real number to (0, 1).
+
+## Interpreting Coefficients
+
+Coefficients in logistic regression represent the **change in the log-odds** of the outcome for a one-unit change in the predictor.
+
+To convert log-odds to probabilities:
+
+$$ p = \frac{e^{\beta_0 + \beta_1x_1}}{1 + e^{\beta_0 + \beta_1x_1}} $$
+
+## ismy.blue example
+
+Visit [ismy.blue](ismy.blue) and play the game. After you've got your outcome, let's talk about how your data is presented along the sigmoid curve.
+
+## Load Packages
+
+Standard suspects: `lme4` and `tidyverse`. For today, we'll use the built-in `iris` data.
+
+```{r, echo = FALSE, message = FALSE}
+library(lme4)
+library(tidyverse)
+```
+
+## Load Data
+
+```{r}
+iris <- iris
+skim_data <- skimr::skim(iris)
+View(skim_data)
+
+?iris
+```
+
+## Visualize first
+
+Explore the data visually.
+
+```{r}
+# point plot to see how Petal.Length and Species are related
+ggplot(iris, aes(x = Petal.Length, y = Species)) +
+  geom_point()
+
+# filter to focus on two species for now: versicolor and virginica
+iris_subset <- subset(iris, Species %in% c("versicolor", "virginica"))
+
+# transform to 0s and 1s
+iris_subset$Species_num <- ifelse(iris_subset$Species == "versicolor", 0, 1)
+# iris_subset$Species_num <-as.factor(iris_subset$Species_num)
+
+# logistic regression model predicting species based on petal length
+iris_model <- glm(Species_num ~ Petal.Length, data = iris_subset, family = binomial)
+summary(iris_model)
+
+## interpretation ##
+# For each one-unit increase in petal length, the log-odds of a flower being classified as "virginica" significantly increases compared to "versicolor."
+
+# fabricate a sequence of Petal.Length values for predictions
+new_data <- data.frame(Petal.Length = seq(min(iris_subset$Petal.Length), 
+                                            max(iris_subset$Petal.Length), 
+                                            length.out = 100))
+
+# predict probabilities
+new_data$Probability <- predict(iris_model, newdata = new_data, type = "response")
+
+# Plot the data and the sigmoid curve
+ggplot(iris_subset, aes(x = Petal.Length, y = Species_num, color = Species)) +
+  geom_jitter(height = 0.1, width = 0.1) + 
+  geom_line(data = new_data, aes(x = Petal.Length, y = Probability), color = "black") +
+  scale_y_continuous(breaks = c(0, 1), labels = c("Versicolor", "Virginica")) +
+  labs(title = "Logistic Regression: Versicolor vs. Virginica",
+       x = "Petal Length",
+       y = "Species") +
+  theme_minimal()
+
+```
+
+Interpretation of `iris_model`:
+
+## Apply your own logistic regression
+
+Edit the below to predict `Species` status based a predictor of your choice. You will need to subset your data (or just use `iris_subset` from above).
+
+```{r}
+student <- glm(student ~ income, data = iris, family = binomial)
+summary(student)
+```
+
+Interpretation of Estimate coefficients:
+
+-   **(Intercept)**: ??
+
+    -   This is the log-odds of \_\_\_\_\_.
+
+-   **your predictor**: ??
+
+    -   This coefficient represents\_\_\_\_.
+
+## From last time
+
+Load `mtcars` and build a model to predict whether transmission is automatic or manual. You will have to perform a transformation on the transmission data first. If you already did this, try another model, maybe with engine type.
+
+```{r}
+mtcars <- mtcars
+
+?mtcars # use this to remind yourself of which variables are present
+
+# transform transmission data to correct type
+
+
+# build model
+```
