@@ -1,0 +1,244 @@
+---
+title: "Mixed Effects Models"
+author: 
+  - "Student Name"
+  - "DS303, SP25"
+  - "Prof. Amber Camp"
+date: 2/28/25
+format: html
+editor: visual
+theme: spacelab
+---
+
+## Mixed Effects Models
+
+Let’s add another tool to your kit: **mixed effects models**. These models are powerful when working with grouped or hierarchical data, where observations are not fully independent. For example, when you have repeated measures from the same subjects or measurements clustered within categories (like students within schools or flowers within species).
+
+## Mixed effects models let you account for both:
+
+-   **Fixed effects**: Effects that are constant across groups (e.g., petal length)
+
+-   **Random effects**: Effects that vary across groups (e.g., individual flowers or different species)
+
+## Why Use Mixed Effects Models?
+
+Imagine you measured petal length and width for multiple flowers within several species. Standard regression treats each flower as independent, ignoring that flowers within the same species might be more alike. Mixed effects models account for this by modeling species as a random effect.
+
+As another example, suppose you are studying test scores across multiple schools. A linear regression might overlook that students within the same school share similar characteristics (like teaching quality or resources). A mixed effects model captures this nested structure, accounting for the variability between schools through random effects.
+
+## **Statistical Equation:**
+
+The equation for a model that includes random effects is:
+
+$$
+Y_{ij} = \beta_0 + \beta_1 x_{ij} + u_j
+$$
+
+Where:
+
+-   *Y~ij~* is the outcome for observation *i* in group *j*
+
+-   *β~0~* + *β~1~x~ij~* are the fixed effects
+
+-   *u~j~* is the random effect for group *j*
+
+**Random effects account for variability across groups, helping you understand both individual-level effects and broader group-level patterns.**
+
+**Note:** We’re simplifying by leaving out the residual error term (*ε~ij~*​) for now to focus on the core idea of fixed and random effects. In practice, models also account for additional unexplained variation.
+
+## Load Packages
+
+Usual suspects: `lme4` and `tidyverse`.
+
+```{r, echo = FALSE, message = FALSE}
+library(lme4)
+library(tidyverse)
+```
+
+## Linear and Logistic Regression & Mixed Models
+
+You have been using `lm()` for linear regressions and `glm()` in combination with `family = binomial` for logistic regressions. When you include random effects, use the following:
+
+-   `lmer()` for linear mixed effects regression
+
+-   `glmer()` for logistic mixed effects models (don't forget the `family = binomial` part!)
+
+## Example 1: `iris` with a linear mixed effects model
+
+We used `iris` data last class, and we will use it again for this example. Let's try a linear regression that predicts `Petal.Length` based on `Petal.Width`, taking into account the random variation within `Species`.
+
+Notice the syntax for the random effects: `(1 | Species)`.^\*^
+
+### Read in `iris` data
+
+```{r}
+iris <- iris
+```
+
+Apply your models and visualize the data:
+
+```{r}
+# start with the linear model
+iris_linear <- lm(Petal.Length ~ Petal.Width, data = iris)
+summary(iris_linear)
+
+# is Petal.Width a good predictor of Petal.Length?
+
+# plot the data to inspect
+ggplot(iris, aes(x = Petal.Width, y = Petal.Length)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  theme_minimal()
+
+# plot again, with color = Species
+ggplot(iris, aes(x = Petal.Width, y = Petal.Length, color = Species)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  theme_minimal()
+
+# now try the mixed effects model
+iris_mixed_linear <- lmer(Petal.Length ~ Petal.Width + (1 | Species), data = iris) # note the addition of the RE!
+summary(iris_mixed_linear)
+
+# when you add Species as a random effect, is Petal.Width still a good predictor of Petal.Length?
+# we can't say yet. calculating a p-value for mixed models is complex, so lme4 doesn't include them
+
+# use lmerTest!
+# install.packages("lmerTest")
+library(lmerTest)
+
+# run your lmer model again
+iris_mixed_linear <- lmer(Petal.Length ~ Petal.Width + (1 | Species), data = iris) # note the addition of the RE!
+summary(iris_mixed_linear)
+
+# Now, what do you see?
+```
+
+Compare the output from the two models. It might seem confusing at first! Your **linear regression** suggests that `Petal.Width` is a strong predictor of `Petal.Length`, but when you add `Species` as a random effect in the **mixed model**, the coefficient for petal width decreases (it is still significant, though!). Let’s break this down:
+
+1.  Linear regression
+
+    -   Treats all flowers as independent observations
+    -   Fits a single line to all the data, ignoring species differences
+    -   Since petal width and length are strongly correlated, you get a high coefficient for petal width
+
+2.  Linear mixed effects model
+
+    -   Acknowledges that flowers are nested within species (flowers **within** the same species are more likely to resemble each other than flowers from different species)
+    -   The random effect allows each species to have its own baseline petal length
+    -   The fixed effect for `Petal.Width` (1.05) is smaller than in the simple regression (2.23), because the model now explains some of the length variation through species differences, not just width
+
+3.  Fixed effects of the mixed model
+
+    -   Interpret these the same as you have been
+
+4.  Random effects (of the mixed model)
+
+    -   Species (Intercept Variance = 1.3426, Std. Dev. = 1.1587):\
+        The standard deviation of 1.16 tells us how much species-level intercepts deviate from the overall average intercept. Some species tend to have longer or shorter petals than others, independent of petal width.
+    -   Residual (Variance = 0.1427, Std. Dev. = 0.3778):\
+        This captures the remaining variation in petal length after accounting for both fixed effects and species-level variability. It reflects unexplained variation within species.
+    -   Variance measures the spread of data in squared units, while standard deviation is its square root, representing the spread in the original units of measurement
+
+In summary: `Petal.Length` increases with `Petal.Width`, but each `Species` has its own baseline length, and flowers **within** a species still vary in ways not fully explained by width alone.
+
+Whew!
+
+## Example 2: `sleepstudy` with a linear mixed effects model
+
+The `sleepstudy` data is a classic one to use when exploring mixed effects modeling. Welcome to the club!
+
+This data comes from a real experiment (Belenky et al., 2003) in which researchers measured the **reaction times** of 18 participants over **10 consecutive days** of restricted sleep. Each participant’s reaction time was recorded daily, making it a **repeated measures design**: the same individuals were tested multiple times.
+
+The study’s goal was to understand how prolonged sleep deprivation affects reaction time and to model individual differences in baseline reaction speeds and their responses to sleep loss.
+
+Here is the data included in this set:
+
+-   `Reaction` = reaction time in ms (the response variable)
+
+-   `Days` = the number of days of sleep deprivation (our predictor)
+
+-   `Subject` = the participant ID numbers. You'll notice there are multiple observations from each participant, making this a good grouping factor for a random effect
+
+By using **Subject** as a random effect, we can account for the fact that some people are naturally faster or slower.
+
+### Read in `sleepstudy` data
+
+```{r}
+sleepstudy <- sleepstudy
+
+?sleepstudy
+
+View(skim_sleep <- skimr::skim(sleepstudy))
+```
+
+### Plot the data
+
+```{r}
+ggplot(sleepstudy, aes(x = Days, y = Reaction, color = Subject)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  theme_minimal()
+
+# what does this show?
+```
+
+Below, build a mixed effects model that predicts `Reaction` based on `Days`, taking into account the within-subject repeated measures.
+
+```{r}
+sleep_mixed_linear <- lmer(Reaction ~ Days + (1 | Subject), data = sleepstudy)
+summary(sleep_mixed_linear)
+```
+
+Interpret the results here:
+
+1.  Is `Days` a good predictor of `Reaction`?
+2.  For each additional day of sleep deprivation, reaction time (increased/decreased) by (number + unit).
+3.  Bonus: How much variation is explained by the random effect? Hint: (variance of RE) / (total variance)
+    -   
+
+Another Bonus: What would the regular linear regression look like (without a random effect)?
+
+```{r}
+sleep_linear <- lm(Reaction ~ Days, data = sleepstudy)
+summary(sleep_linear)
+```
+
+Is there much difference in interpretation? Why should we use a mixed effects model for this data?
+
+## Example 3: `sleepstudy` with a logistic mixed effects model
+
+What if we want to predict a binary outcome? Let’s imagine a scenario where we classify whether reaction times exceed a certain threshold, indicating severe impairment.
+
+Create a binary outcome where a reaction time longer than 300ms indicates `Impaired`. (I made this up, btw)
+
+```{r}
+sleepstudy$Impaired <- ifelse(sleepstudy$Reaction > 300, 1, 0)
+```
+
+Apply a logistic mixed effects model that predicts `Impaired` based on `Days`, including `Subject` as a random effect.
+
+```{r}
+sleep_mixed_logistic <- glmer(Impaired ~ Days + (1 | Subject), data = sleepstudy, family = binomial)
+summary(sleep_mixed_logistic)
+```
+
+Interpret:
+
+1.  What does the fixed effect of `Days` tell you in this logistic mixed model context?
+
+    -   Interpretation: For each additional day of sleep deprivation, the log odds of `Impaired` (increases/decreased). This is a (significant/non-significant) effect.
+
+2.  Bonus: Convert the log odds to an odds ratio. Hint: *e*^coefficient^ = ?
+
+    -   Interpretation: For each additional day of sleep deprivation, the odds of being impaired increases by about XX%.
+
+3.  Do the same for the Intercept. *e*^-3.19546^ = ?
+
+    -   Interpretation: At `Day` = 0, there is a XX% chance of impairment.
+
+## References
+
+Gregory, B., Wesensten, N. J., Thorne, D. R., Thomas, M. L., Sing, H. C., Redmond, D. P., Russo, M. B., & Balkin, T. J. (2003). Patterns of performance degradation and restoration during sleep restriction and subsequent recovery: A sleep dose-response study. *Journal of Sleep Research, 12*(1), 1–12.
+
+^\*^ You can ignore this for now, but I know that some of you appreciate additional information. In the syntax for a random effect, `1` indicates an intercept and `Species` is the grouping variable. So, `(1 | Species)` means that each `Species` gets its own intercept, which will capture baseline differences in the outcome variable across species. Random effects can also be called random intercepts. It can get more advanced than this. You can instead do `(Petal.Width | Species)`, for instance, which gives you a random slope that means that not only can each species have its own intercept, but the relationship between petal width and petal length can vary across species.
