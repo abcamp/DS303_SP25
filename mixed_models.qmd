@@ -12,7 +12,7 @@ theme: spacelab
 
 ## Mixed Effects Models
 
-Let’s add another tool to your kit: **mixed effects models**. These models are powerful when working with grouped or hierarchical data, where observations are not fully independent. For example, when you have repeated measures from the same subjects or measurements clustered within categories (like students within schools or flowers within species).
+Let’s add another tool to your kit: **mixed effects models**. These models are powerful when working with grouped or hierarchical data, where observations are not fully independent. For example, when you have **repeated measures** from the same subjects or measurements clustered within categories (like students within schools or flowers within species).
 
 ## Mixed effects models let you account for both:
 
@@ -193,9 +193,10 @@ summary(sleep_mixed_linear)
 Interpret the results here:
 
 1.  Is `Days` a good predictor of `Reaction`?
-2.  For each additional day of sleep deprivation, reaction time (increased/decreased) by (number + unit).
+2.  For each additional day of sleep deprivation, reaction time (increased) by (10.47 ms).
 3.  Bonus: How much variation is explained by the random effect? Hint: (variance of RE) / (total variance)
-    -   
+    -   In this example, about **59% of the variation** in reaction times is due to differences between subjects, while the remaining **41%** is unexplained within-subject variability.
+    -   1378.2 / (1378.2 + 960.5) = 0.59 = 59%
 
 Another Bonus: What would the regular linear regression look like (without a random effect)?
 
@@ -205,6 +206,8 @@ summary(sleep_linear)
 ```
 
 Is there much difference in interpretation? Why should we use a mixed effects model for this data?
+
+Because of the repeated measures design.
 
 ## Example 3: `sleepstudy` with a logistic mixed effects model
 
@@ -221,21 +224,24 @@ Apply a logistic mixed effects model that predicts `Impaired` based on `Days`, i
 ```{r}
 sleep_mixed_logistic <- glmer(Impaired ~ Days + (1 | Subject), data = sleepstudy, family = binomial)
 summary(sleep_mixed_logistic)
+
+exp(0.58523)
+exp(-3.19546)
 ```
 
 Interpret:
 
 1.  What does the fixed effect of `Days` tell you in this logistic mixed model context?
 
-    -   Interpretation: For each additional day of sleep deprivation, the log odds of `Impaired` (increases/decreased). This is a (significant/non-significant) effect.
+    -   Interpretation: For each additional day of sleep deprivation, the log odds of `Impaired` (increases). This is a (significant) effect.
 
 2.  Bonus: Convert the log odds to an odds ratio. Hint: *e*^coefficient^ = ?
 
-    -   Interpretation: For each additional day of sleep deprivation, the odds of being impaired increases by about XX%.
+    -   Interpretation: For each additional day of sleep deprivation, the odds of being impaired increases by about 80%.
 
 3.  Do the same for the Intercept. *e*^-3.19546^ = ?
 
-    -   Interpretation: At `Day` = 0, there is a XX% chance of impairment.
+    -   Interpretation: At `Day` = 0, there is a 4% odds of impairment.
 
 ## References
 
