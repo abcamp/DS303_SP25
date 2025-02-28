@@ -124,15 +124,32 @@ ggplot(iris_subset, aes(x = Petal.Length, y = Species_num, color = Species)) +
 
 ```
 
-Interpretation of `iris_model`:
+Interpretation of `iris_model`: (Remember we coded versicolor = 0 and virginica = 1)
+
+-   **(Intercept)**: -43.781
+
+    -   This is the log-odds of being classified as "virginica" when petal length is zero
+    -   This value is not practically meaningful as petal lengths in the dataset are positive
+
+-   **Petal.Length**: 9.002
+
+    -   For each one-unit increase in petal length, the log-odds of a flower being classified as "virginica" (rather than "versicolor") significantly increases
+
+    -   Since the coefficient is positive, it suggests that as petal length increases, the log-odds of being classified as "virginica" significantly increases, compared to "versicolor"
+
+        -   To interpret it in terms of odds, you can exponentiate the coefficient:
+
+            Odds Ratio = e^9.002^ ≈ 12,343.6
+
+        -   This means that for each additional centimeter of petal length, the odds of a flower being classified as "virginica" rather than "versicolor" increase by a factor of approximately 12,343.6, indicating a very strong relationship.
 
 ## Apply your own logistic regression
 
 Edit the below to predict `Species` status based a predictor of your choice. You will need to subset your data (or just use `iris_subset` from above).
 
 ```{r}
-student <- glm(student ~ income, data = iris, family = binomial)
-summary(student)
+flower <- glm(Species_num ~ ?, data = iris_num, family = binomial)
+summary(flower)
 ```
 
 Interpretation of Estimate coefficients:
