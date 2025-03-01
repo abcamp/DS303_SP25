@@ -1,0 +1,368 @@
+---
+title: "Coding Categorical Variables"
+author: 
+  - "Created with input from all students"
+  - "DS303, SP25"
+  - "Prof. Amber Camp"
+date: 2/21/25
+format: html
+editor: visual
+theme: spacelab
+---
+
+## Coding Categorical Predictors
+
+Working with categorical predictors is an important aspect of building effective statistical models. Categorical predictors, also known as factors, represent qualitative data that can be organized into distinct groups, such as gender, geographic location, or product type.
+
+In R, these predictors can be integrated into various modeling techniques, helping us identify relationships and make predictions based on different *levels* of these variables.
+
+## UCLA Reference
+
+There are many resources out there, but this is one I go back to again and again. I find it really easy to understand and to also use as a reference:
+
+[**R LIBRARY CONTRAST CODING SYSTEMS FOR CATEGORICAL VARIABLES**](https://stats.oarc.ucla.edu/r/library/r-library-contrast-coding-systems-for-categorical-variables/)
+
+## Set up your environment
+
+### Load packages
+
+```{r, echo = FALSE, message = FALSE}
+library(lme4)
+library(tidyverse)
+```
+
+### Load Data
+
+Following the UCLA resource, we will use data frame called `hsb2` and focusing on the categorical variable `race`, which has four levels (1 = Hispanic, 2 = Asian, 3 = African American and 4 = Caucasian). We will use `write` as our dependent variable.
+
+```{r}
+# read in data from URL
+hsb2 = read.table('https://stats.idre.ucla.edu/stat/data/hsb2.csv', header=T, sep=",")
+```
+
+Let's create `race.f`, which is the `race` data re-labeled and also turned into factors.
+
+```{r}
+hsb2$race.f <- factor(hsb2$race, labels=c("Hispanic", "Asian", "African-Am", "Caucasian"))
+```
+
+### Inspect your data
+
+Inspect your data below using `skimr`, `summary`, and `ggplot2`. You should also check out [this resource](https://www.openintro.org/data/index.php?data=hsb2), which describes the dataset.
+
+```{r}
+skim <- skimr::skim(hsb2)
+View(skim)
+
+summary(hsb2)
+summary(hsb2$race)
+summary(hsb2$race.f)
+
+ggplot(hsb2, aes(x = race.f, y = write)) +
+  geom_boxplot()
+
+ggplot(hsb2, aes(x = race.f, y = write)) +
+  geom_jitter(width = 0.2, height = 0) 
+
+```
+
+## Coding Schemes
+
+There are several different coding schemes, and you can also generate your own scheme for your own purposes. For our class, we will focus on **Dummy**, **Simple**, **Deviation**, and **Helmert** Coding.
+
+We've already seen dummy coding, but it is good to see it again.
+
+## Class activity
+
+Split into four groups. Explore your assigned coding scheme and answer the below five questions. Then, apply your coding scheme to the `hsb2` data and walk us through its interpretation.
+
+## Dummy Coding (a.k.a. Treatment Coding)
+
+(Selena, Ashley, Lela)
+
+1.  What comparisons are made with this coding scheme?
+
+    -   Compares each level to the reference level, intercept being the cell mean of the reference group.
+
+2.  When is this coding scheme preferred? What types of data or analysis scenarios make this coding method particularly useful?
+
+    -   Dummy coding is the default scheme and probably the most common. It is useful for situations where you need to interpret the coefficients as the difference between a specific category and the reference group. Dummy coding is a statistical technique that uses a series of 0s and 1s to represent categorical data. It's a common way to convert categorical variables into numerical data so that models can process them.
+
+    -   Dummy coding is preferred when you need to incorporate categorical variables (nominal or ordinal data) into a regression model because it allows you to represent each category as a binary variable.
+
+    -   Categorical variables like gender (male/female), location (city, suburb), or marital status (single, married) are the best fit and make dummy coding useful and efficient.
+
+3.  What are the advantages of this coding method? How does it simplify interpretation or enhance model performance?
+
+    -   By converting categorical variables into binary values (0/1), it enables easier comparison between categories, especially when using a reference level. This method is also widely supported by statistical software, making it user-friendly and efficient for modeling.
+
+    -   It enhances model performance by allowing categorical data to be included in a model by converting it into numerical values. This provides more information to the model and potentially improves its accuracy in predicting the target variable.
+
+4.  What are the limitations of this coding method? Are there situations where this method may lead to misleading results or interpretations?
+
+    -   Dependence on the reference group. The choice of the reference group affects all the coefficient estimates. If the reference group has unusual characteristics or is not a meaningful baseline, the results can be misleading.
+
+    -   The intercept represents the mean of the reference group, not a global average or grand mean. This can be unintuitive, especially if the reference group isn't a natural "baseline."
+
+    -   Dummy coding introduces **perfect multicollinearity** if all levels are included as separate variables (this is why one level is dropped as the reference). But this means you lose direct information about the reference group in your coefficient estimates — you only get comparisons relative to it.
+
+    -   Dummy coding only tests for **pairwise differences** with the reference group, not overall patterns or trends across levels. So, you can only make additional comparisons after releveling.
+
+5.  How does this coding scheme affect the coefficients in regression models? What do the coefficients represent in the context of your chosen coding method?
+
+    -   In regression models, dummy coding affects the interpretation of coefficients by setting one category as the reference group while creating binary variables for the remaining categories. Each coefficient represents the difference in the dependent variable between a given category and the reference category, holding all other variables constant. The intercept represents the expected outcome for the reference group. Since all comparisons are relative, choosing a meaningful reference category is important to avoid misleading interpretations. If there are many categories, dummy coding can add complexity and may cause multicollinearity.\
+
+### Applying Dummy Coding
+
+Dummy coding is the default, and so no extra processing is required. However, if you want to manually apply the coding matrix, an example is pasted below and commented out.
+
+```{r}
+# assign dummy coding
+contrasts(hsb2$race.f)
+
+# build and summarize your regression
+dummy <- lm(write ~ race.f, data = hsb2)
+summary(dummy)
+
+####
+# # if you want to manually apply the coding matrix
+# contr.treatment(4) # 4, for 4 levels
+# # assign the treatment contrasts to race.f
+# contrasts(hsb2$race.f) = contr.treatment(4)
+# # view the final matrix
+# contrasts(hsb2$race.f) # note that the default is for the first level to get dropped
+# # run your model
+# dummy <- lm(write ~ race.f, data = hsb2)
+# summary(dummy)
+```
+
+Summarize these findings. What is your reference group, and how do the other groups compare with regards to their writing scores? What does the intercept value represent?\
+\
+**Answer:**
+
+-   The reference group is Hispanic, with a mean score of 46.458. While this value is significantly different from zero, the significance of the intercept itself is not a primary focus.
+
+-   The model indicates that Asian students score, on average, 11.542 points higher than Hispanic students, a statistically significant difference.
+
+-   African American students score, on average, 1.742 points higher than Hispanic students, but this difference is not statistically significant.
+
+-   Caucasian students score, on average, 7.597 points higher than Hispanic students, and this difference is statistically significant.
+
+-   Overall, the model compares the mean "write" scores for Hispanic students (level 1) to the other groups: level 2 (Asian), level 3 (African American), and level 4 (Caucasian).
+
+-   The R-squared value of 0.1071 indicates that approximately 10.7% of the variance in writing scores is explained by race.\
+
+## Simple Coding
+
+(Cade, Brandon, Izack)
+
+1.  What comparisons are made with this coding scheme?
+
+    -   The same as dummy coding where each level is compared to the reference level.
+
+    -   Note that the Intercept displays the mean of means (think overall or grand mean), but levels are still compared to the reference level, not the intercept.
+
+    -   Setting up the coding matrix involves fractions. The coefficients represent the difference between each group’s mean and the reference group’s mean, just like in dummy coding. But the fractional weights adjust for the number of levels, so the intercept becomes the grand mean (the average of all group means)
+
+2.  When is this coding scheme preferred? What types of data or analysis scenarios make this coding method particularly useful?
+
+    -   Particularly useful in situations where you want to compare each level of a variable to a reference group, but with the added benefit of an intercept that represents the grand mean (technically eh mean of means, the average of all group means)
+
+3.  What are the advantages of this coding method? How does it simplify interpretation or enhance model performance?
+
+    -   The intercept becomes a meaningful central value (the mean of all group means), giving you a useful overall benchmark
+
+    -   Even though coefficients show deviations from the reference group, simple coding can reduce bias when group sizes are unequal because the intercept is not tied to a potentially unrepresentative reference group
+
+4.  What are the limitations of this coding method? Are there situations where this method may lead to misleading results or interpretations?
+
+    -   It may be too general for certain data sets since it compares the cell means. It only focuses on ONE reference group
+
+5.  How does this coding scheme affect the coefficients in regression models? What do the coefficients represent in the context of your chosen coding method?
+
+    -   The coefficients in the regression model are similar to dummy coding–they represent the deviation from the reference level
+
+### Applying Simple Coding
+
+```{r}
+# assign simple coding
+# create the contrast matrix manually by modifying the dummy coding scheme
+c <- contr.treatment(4) # 4, for 4 levels
+my.coding <- matrix(rep(1/4, 12), ncol=3) # build a matrix
+my.simple <- c - my.coding # subtract matrix from contr.treatment matrix
+my.simple # view simple coding
+
+contrasts(hsb2$race.f) <- my.simple # apply to levels
+contrasts(hsb2$race.f) # view coding
+
+# build and summarize your regression
+simple <- lm(write ~ race.f, data = hsb2)
+summary(simple)
+```
+
+Summarize these findings. What is your reference group, and how do the other groups compare with regards to their writing scores? What does the intercept value represent?\
+
+-   Intercept represents the grand mean, which is significantly above zero.
+
+-   The reference group In this case is Hispanic. The mean of this reference level is not listed in the output.
+
+-   race.f2 shows that group 2 (Asian) on average scores 11.54 points higher than Hispanic, and this is statistically significant.
+
+-   race.f3 shows that group 3 (African American) on average scores 1.74 points higher than Hispanic, but this is NOT statisticall significant
+
+-   race.f4 shows that group 4 (Caucasian) on average scores 7.59 points higher than Hispanic, and this is statistically significant.
+
+-   Just like in dummy coding, the multiple R-squared (0.1071) suggests that 10.71% of the variance In scores is due to race\
+
+## Deviation Coding
+
+(Alii, Bennett, LaVelle)
+
+1.  What comparisons are made with this coding scheme?
+
+    -   Each group is compared to the overall average (grand mean), not to a single reference group.
+
+2.  When is this coding scheme preferred? What types of data or analysis scenarios make this coding method particularly useful?
+
+    -   When you want to see if each group differs from the overall mean
+
+    -   Ex: Comparing school scores to the average score across all schools
+
+3.  What are the advantages of this coding method? How does it simplify interpretation or enhance model performance?
+
+    -   Intercept = grand mean, so it’s easy to understand
+
+    <!-- -->
+
+    -   Shows whether each group is above or below the average
+
+    -   No single group is treated as a baseline
+
+4.  What are the limitations of this coding method? Are there situations where this method may lead to misleading results or interpretations?
+
+    -   Doesn’t show direct group-to-group comparisons.
+
+    <!-- -->
+
+    -   Can be misleading if group sizes are very uneven
+
+    -   Need to relevel/recode in order to see the comparison(s) involving the dropped level(s)
+
+5.  How does this coding scheme affect the coefficients in regression models? What do the coefficients represent in the context of your chosen coding method?
+
+    -   Intercept = the grand mean
+
+    <!-- -->
+
+    -   Coefficients: The difference from the grand mean for each group.
+
+### Applying Deviation Coding
+
+```{r}
+# assign deviation coding
+contr.sum(4)
+
+# assign the deviation contrasts to race.f
+contrasts(hsb2$race.f) = contr.sum(4)
+
+# view the coding/levels
+contrasts(hsb2$race.f)
+# note that  one level is dropped, similar to dummy and simple
+
+
+# build and summarize your regression
+dev <- lm(write ~ race.f, data = hsb2)
+summary(dev)
+```
+
+Summarize these findings. Unlike dummy and simple coding, there is no traditional reference level in deviation coding. In this context, how do the groups compare regarding their writing scores? What does the intercept value represent?
+
+-   Intercept = grand mean
+
+-   race.f1 scores 5.22 points lower than the average (grand mean), and this is significant
+
+-   race.f2 scores 6.32 points higher than the grand mean, and this is significant
+
+-   race.f3 scores 3.48 points lower than the grand mean, and this is significant
+
+-   race.f4 is not shown\
+
+## Helmert Coding
+
+(Will, Warren)
+
+1.  What comparisons are made with this coding scheme?\
+    \
+    Helmert coding compares each level of a categorical variable to the average of the following levels.
+
+2.  When is this coding scheme preferred? What types of data or analysis scenarios make this coding method particularly useful?\
+    \
+    It’s preferred for [ordered]{.underline} categorical data when comparing successive levels. Good for comparing sequential differences across levels.
+
+3.  What are the advantages of this coding method? How does it simplify interpretation or enhance model performance?\
+    \
+    It simplifies interpretation by showing differences between each level and the following levels' average, making analysis clearer.
+
+4.  What are the limitations of this coding method? Are there situations where this method may lead to misleading results or interpretations?\
+    \
+    It’s not suitable for unordered data and can be confusing with many levels or when there's no natural order. Need to relevel to see all possible combinations. Can be confused with reverse helmert.
+
+5.  How does this coding scheme affect the coefficients in regression models? What do the coefficients represent in the context of your chosen coding method?\
+    \
+    In regression, Helmert coding’s coefficients represent the difference between each level and the average of all following levels, showing contrast effects.
+
+### Applying Helmert Coding
+
+```{r}
+# assign Helmert coding
+# helmert for factor variable with 4 levels
+my.helmert = matrix(c(3/4, -1/4, -1/4, -1/4, 0, 2/3, -1/3, -1/3, 0, 0, 1/
+	2, -1/2), ncol = 3)
+my.helmert # view the matrix to understand how all four levels are included in the first column, then only three levels in the next, and then only two levels in the final column
+      
+# assign the new helmert coding to race.f
+contrasts(hsb2$race.f) = my.helmert
+contrasts(hsb2$race.f) # view the coding/levels
+
+# build and summarize your regression
+helmert <- lm(write ~ race.f, data = hsb2)
+summary(helmert)
+```
+
+Summarize these findings. In Helmert coding, each level is compared to the mean of subsequent levels, rather than having a traditional reference group. In this context, how do the groups compare regarding their writing scores? What does the intercept value represent?\
+\
+**Answer**:
+
+-   Each group's writing score is compared to the mean of the subsequent levels, instead of using a traditional reference group. The intercept value represents the average writing score across all levels before any comparisons are made. The coefficients show how each group’s writing score differs from the average of the following groups in a stepwise fashion.
+
+-   Intercept = grand mean
+
+-   The mean of race.f1 is 6.96 points lower than for (race.f2, race.f3, and race.f4) combined, is significant
+
+-   The mean of race.f2 is 6.87 points higher than (race.f3 and race.f4) combined, is significant
+
+-   The mean of race.f3 is 5.86 points lower than race.f4, and this is also significant
+
+## Releveling a predictor
+
+Releveling refers to the process of changing the reference level of a factor or categorical variable. This allows us to examine how different groups compare to a new reference category. By selecting a different reference level, we can gain new insights into the effects of categorical predictors in our analyses.
+
+### To relevel:
+
+You can use the below to define a reference level, or you can manually assign new values in your contrasts matrix.
+
+```{r}
+# relevel
+hsb2$race.f <- relevel(hsb2$race.f, ref = "Asian") 
+
+# after this, you'd apply your model for analysis
+```
+
+## Summary Table
+
+| **Coding Scheme** | **Intercept Interpretation** | **Coefficient Interpretation** | **Comparison Basis** | **When to Use** |
+|--------------|--------------|--------------|--------------|------------------|
+| **Dummy Coding** | Mean of the reference group | Difference between each group’s mean and the reference group’s mean | Reference group | When you want to compare each group against a baseline or reference category |
+| **Simple Coding** | Grand mean (mean of all group means) | Difference between each group’s mean and the reference group’s mean | Reference group | When you want to compare each group to a reference, but with the overall mean as the intercept for easier model interpretation |
+| **Deviation Coding** | Grand mean (mean of all group means) | Difference between each group’s mean and the overall mean | Overall mean | When you want to test whether each group differs from the overall average rather than a specific reference group |
+| **Helmert Coding** | Mean of all groups | Contrast between each group and the average of subsequent groups | Average of subsequent groups | When you want to test the impact of adding each group relative to the remaining groups |
