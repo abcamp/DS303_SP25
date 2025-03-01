@@ -1,0 +1,182 @@
+---
+title: "Assignment 2: Wrapping up linear regression"
+author: 
+  - "Student Name"
+  - "DS303, SP25"
+  - "Prof. Amber Camp"
+date: 2/28/25
+format: html
+toc: true
+editor: visual
+theme: spacelab
+---
+
+# Assignment 2: Wrapping up linear and logistic regression\*
+
+Assignment 2 covers linear and logistic regression models and includes many of the topics we have covered over the entire semester. You will be using `palmerpenguins` data, which includes a nice variety of continuous and categorical predictors.
+
+\*This assignment does not include mixed effects models, but you will be seeing that on another assignment.
+
+## Load Packages
+
+```{r, message = FALSE}
+library(lme4)
+library(tidyverse)
+# install.packages("palmerpenguins") # install if needed
+library(palmerpenguins)
+```
+
+## Load Data
+
+Load the `penguins` data and examine it below (use `summary()`, etc.)
+
+```{r}
+penguins <- penguins
+
+
+```
+
+## Question 1: Describe the data
+
+What data is contained in this data set? Describe at least four variables (excluding `year`), including what they represent and their data type. Lastly, describe whether you think `year` would be a useful predictor in this data.
+
+(Write answer here)
+
+## Question 2: EDA
+
+Explore your data visually. Create at least two visualizations that show the relationship between `flipper_length_mm` and its potential predictors.
+
+```{r, warning = FALSE}
+
+
+```
+
+## Question 3: Apply a linear regression
+
+Fit a simple linear regression model predicting `flipper_length_mm` from `body_mass_g`. Interpret the slope and intercept.
+
+```{r}
+
+
+```
+
+Interpret your model output in your own words below. Be sure to include a sentence explaining how `body_mass_g` impacts `flipper_length_mm` and whether or not the effect is significant.
+
+**Answer:** (Write answer here)
+
+## Question 4: Apply a multiple linear regression
+
+Fit a linear regression model predicting `flipper_length_mm` from both `body_mass_g` and `bill_length_mm`. Interpret the slopes and intercept.
+
+```{r}
+
+
+```
+
+Similar to Question 3, interpret the model output in your own words here:
+
+**Answer:** (Write answer here)
+
+## Question 5: Include an interaction
+
+Fit a simple linear regression model predicting `flipper_length_mm` from `body_mass_g,` `bill_length_mm`, and the interaction of the two. Interpret the slopes and intercept.
+
+```{r}
+
+
+```
+
+Interpret the model output in your own words below. If there was a change in the pattern of significance, try to explain the logic below as well.
+
+**Answer:** (Write answer here)
+
+## Question 6: Compare models
+
+Compare the models you built in Questions 4 and 5 using `anova()`.
+
+```{r}
+
+
+```
+
+-   Which is the better model? How do you know?
+
+    -   **Answer:** (Write answer here)
+
+-   Is it possible to compare the models from Questions 3 and 5 using the same method? Why or why not?
+
+    -   **Answer:** (Write answer here)
+
+## Question 7: Categorical predictors
+
+Build a linear model that includes a categorical predictor of your choice. It is fine to stick with dummy coding. Optional: apply a different coding scheme AND interpret the output correctly for +1 extra credit.
+
+```{r}
+
+
+```
+
+-   What is the reference level of your categorical predictor?
+
+    -   **Answer:**
+
+-   What is your interpretation of this model output? Address all coefficients.
+
+    -   **Answer:**
+
+## Question 8: Relevel your categorical variable
+
+Relevel your categorical variable so that a **different** level becomes the reference. Then, run the same model you did in Question 7 and interpret the output.
+
+Relevel:
+
+```{r}
+
+
+```
+
+Apply model from Question 7:
+
+```{r}
+
+
+```
+
+-   What is the new reference level of your categorical predictor?
+
+    -   **Answer:**
+
+-   What is your interpretation of this new model output? Address all coefficients.
+
+    -   **Answer:**
+
+## Question 9: Apply a logistic regression
+
+Apply a logistic regression. Remember that your predicted outcome variable needs to be binary (or categorical with two levels). Either choose `sex` as your outcome OR subset some other categorical variable so that there are only two levels. Include as many predictor variables as you'd like.
+
+```{r}
+
+```
+
+What are your key takeaways from this model?
+
+**Answer:** (Write answer here)
+
+## Question 10: Synthesize the information
+
+Imagine you’re a biologist studying penguin populations. Which predictors do you think are most important to measure or record in the field to predict flipper length? Why?
+
+**Answer:** (Write answer here)
+
+## Bonus: Stepwise Regression
+
+Perform stepwise regression to find the best model for an outcome of your choice. You will likely encounter an error – fixing that error and explaining your findings will earn you +1 extra credit. Show your work.
+
+```{r}
+
+
+```
+
+According to this stepwise regression, explain how the final model was selected.
+
+**Answer:** (Write answer here)
