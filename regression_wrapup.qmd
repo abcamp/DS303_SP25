@@ -1,5 +1,5 @@
 ---
-title: "Assignment 2: Wrapping up linear regression"
+title: "Assignment 2: Wrapping up regression"
 author: 
   - "Student Name"
   - "DS303, SP25"
@@ -14,6 +14,8 @@ theme: spacelab
 # Assignment 2: Wrapping up linear and logistic regression\*
 
 Assignment 2 covers linear and logistic regression models and includes many of the topics we have covered over the entire semester. You will be using `palmerpenguins` data, which includes a nice variety of continuous and categorical predictors.
+
+To submit this assignment, render this file and save as a pdf. Upload the pdf to Canvas.
 
 \*This assignment does not include mixed effects models, but you will be seeing that on another assignment.
 
@@ -152,7 +154,10 @@ Apply model from Question 7:
 
 ## Question 9: Apply a logistic regression
 
-Apply a logistic regression. Remember that your predicted outcome variable needs to be binary (or categorical with two levels). Either choose `sex` as your outcome OR subset some other categorical variable so that there are only two levels. Include as many predictor variables as you'd like.
+Apply a logistic regression. Include as many predictor variables as you'd like. Remember that your predicted outcome variable needs to be binary (or categorical with two levels).
+
+\
+Hint: You could use `sex` or create a binary variable of your own (e.g., Gentoo vs. non-Gentoo) to test your model.
 
 ```{r}
 
