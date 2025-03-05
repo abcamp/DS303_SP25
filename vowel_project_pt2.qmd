@@ -244,5 +244,3 @@ Here is a brief list of all the variables and what they mean:
 -   age_learned_en: The age the speaker learned English
 
 -   speak_other: Other languages spoken by the speaker
-
-### 
