@@ -1,0 +1,248 @@
+---
+title: "Vowel Project, part 2"
+author: 
+  - "Student Name"
+  - "DS303, SP25"
+  - "Prof. Amber Camp"
+date: 3/5/25
+format: html
+toc: true
+editor: visual
+theme: spacelab
+---
+
+## Vowel Project, part 2
+
+You made vowel charts last time for your own data and for the class data. Let's discuss outlier trimming, hypothesis generating, and model application.
+
+## Class Rules Around Data Sharing
+
+Remember, please do not post the [class dataset]{.underline}. Any other products are fine to push to GitHub.
+
+## Let's look at the data!
+
+### Load packages
+
+```{r, echo = FALSE, message = FALSE}
+library(tidyverse)
+library(lme4)
+library(lmerTest)
+
+# install.packages("phonR")
+library(phonR)
+```
+
+## Load data
+
+Personal data:
+
+```{r}
+# read in data
+P101 <- read_csv("data/P101.csv")
+
+# convert variables to factor where needed
+convert_to_factor <- function(df, cols) {
+  df[cols] <- lapply(df[cols], as.factor)
+  return(df)
+}
+
+P101 <- convert_to_factor(P101, c("ppt", "word", "ipa", "arpa", "onset", "offset", "environment", "real_word", "sex", "ethnicity", "birthplace", "home_state", "years_lived_hi", "L1", "exposure_langs_yn", "exposure_langs", "speak_other", "item_num", "rep"))
+
+# remove a couple words you won't be needing
+P101 <- P101 %>%
+  dplyr::filter(!word %in% c("cot", "caught")) # added dplyr to specify which 'filter' to use
+
+```
+
+Class data:
+
+```{r}
+# read in data
+all_data <- read_csv("data/DS303_combined.csv")
+
+# convert variables to factor where needed
+all_data <- convert_to_factor(all_data, c("ppt", "word", "ipa", "arpa", "onset", "offset", "environment", "real_word", "sex", "ethnicity", "birthplace", "home_state", "years_lived_hi", "L1", "exposure_langs_yn", "exposure_langs", "speak_other", "item_num", "rep"))
+
+# remove a couple words you won't be needing
+all_data <- all_data %>%
+  dplyr::filter(!word %in% c("cot", "caught"))
+
+```
+
+## Revisit Vowel Plots
+
+Many of you have outliers that are slightly skewing the data. Outliers are a natural part of data collection. They result from mistakes or anomalies, and these come from the instrument, the subject, and maybe even the scientist.
+
+### Personal Plot
+
+```{r}
+with(P101, plotVowels(f1, f2, ipa, plot.tokens = TRUE, pch.tokens = ipa, cex.tokens = 1.2, alpha.tokens = 0.2, plot.means = TRUE, pch.means = ipa, cex.means = 2, var.col.by = ipa, ellipse.line = TRUE, pretty = TRUE))
+
+```
+
+### Outliers
+
+Let's deal with some of these outliers. We are going to transform `f1` and `f2` to z-scores for this. When we apply z-score transformation:
+
+-   The **mean** of the transformed data is **0**.
+
+-   The **standard deviation** is **1**.
+
+-   Values are expressed in terms of **standard deviations from the mean**.
+
+```{r}
+## clean up outliers
+# convert f1 and f2 values to z-scores
+# z-scores help normalize the data
+P101_clean <- P101 %>%
+  group_by(ipa) %>% 
+  mutate(
+    f1_z = (f1 - mean(f1)) / sd(f1), # basic z-score transformation
+    f2_z = (f2 - mean(f2)) / sd(f2)
+  ) %>%
+  filter(abs(f1_z) <= 2, abs(f2_z) <= 2) # 2 to 3sd is typical for this type of data
+
+## plot the trimmed data
+with(P101_clean, plotVowels(f1, f2, ipa, plot.tokens = TRUE, pch.tokens = ipa, cex.tokens = 1.2, alpha.tokens = 0.2, plot.means = TRUE, pch.means = ipa, cex.means = 2, var.col.by = ipa, ellipse.line = TRUE, pretty = TRUE))
+
+# looks a lot cleaner, right?
+```
+
+### Class Plot
+
+Here is the plot with the raw untrimmed data. Lots of outliers!
+
+```{r}
+with(all_data, plotVowels(f1, f2, ipa, plot.tokens = TRUE, pch.tokens = ipa, cex.tokens = 1.2, alpha.tokens = 0.2, plot.means = TRUE, pch.means = ipa, cex.means = 2, var.col.by = ipa, ellipse.line = TRUE, pretty = TRUE))
+
+```
+
+Improve the plot by filtering out the outliers. Look up a vowel plot for "Mainstream American English" as a reference.
+
+```{r}
+## remove outliers
+all_clean <- all_data %>%
+  group_by(ppt, ipa) %>% # notice that we added ppt as a grouping
+  mutate(
+    f1_z = (f1 - mean(f1)) / sd(f1),
+    f2_z = (f2 - mean(f2)) / sd(f2)
+  ) %>%
+  filter(abs(f1_z) <= 3, abs(f2_z) <= 3)
+
+# plot clean data
+with(all_clean, plotVowels(f1, f2, ipa, plot.tokens = TRUE, pch.tokens = ipa, cex.tokens = 1.2, alpha.tokens = 0.2, plot.means = TRUE, pch.means = ipa, cex.means = 2, var.col.by = ipa, ellipse.line = TRUE, pretty = TRUE))
+
+```
+
+Note that for your statistical analyses, you will typically want to use the trimmed data. For our class project, since a lot of what I'd like for you to do is exploratory, you can use both.
+
+By the way, it's always good to check how much data is **lost** due to outlier trimming. There are a few ways to do this, but the easiest is to look at the number of observations you have and divide that by the number of observations you started with:
+
+```{r}
+(1184/1201) * 100 # how much remains
+
+(1 - (1184/1201)) * 100 # how much was lost
+```
+
+## Generating Hypotheses
+
+We will not focus on the traditional *H~0~* vs. *H~A~* hypothesis generating. Instead, let's just think critically about which variables are 1) interesting to you, and 2) potentially related. The Variable Dictionary is pasted way at the end of this document for your reference. Is there a particular outcome you want to explore? What *predictors* do you expect to impact that *outcome*? Use the space below to jot down some of your thoughts (not graded)
+
+(Notes here)
+
+## Applying Predictive Modeling
+
+Now it is your turn to explore the data with various models.
+
+The basic tools:
+
+-   linear regression
+
+-   logistic regression
+
+-   mixed effects models (linear or logistic)
+
+Extra tools:
+
+-   non-linear transformations
+
+-   coding schema for categorical variables
+
+-   anything else
+
+### When to use which?
+
+-   linear regression:
+
+-   logistic regression:
+
+-   mixed effects models (linear or logistic):
+
+-   f1/f2 vs. f1_z/f2_z: raw values for comparing across speakers, z-scored values for comparisons within participant. I recommend just using the raw values and then invluding `ppt` as a random effect.
+
+## Give it a go!
+
+Use the below space to start exploring different analysis options. Use it for visualization and application of models.
+
+```{r}
+
+
+```
+
+## Variable Dictionary
+
+Here is a brief list of all the variables and what they mean:
+
+-   item_num: The experimental item number
+
+-   rep: The "repeat" number, meaning was this the first, second, or third time the word was read
+
+-   ppt: The participant number
+
+-   word: The word that was read (the *vowel* is the interesting part, but I wanted to contextualize it)
+
+-   f0: The pitch of the speaker's voice in Hz
+
+-   f1: The first formant, which inversely correlates to vowel height (tongue height)
+
+-   f2: The second formant, which correlates to vowel frontness or backness
+
+-   duration: The duration of the word in ms
+
+-   ipa: The vowel symbol from the International Phonetic Alphabet
+
+-   arpa: The vowel symbol (digraph) in the **Advanced Research Projects Agency (ARPAbet)**
+
+-   onset: Whether the beginning of the word was voiced or voiceless
+
+-   offset: Whether the end of the word was voiced or voiceless
+
+-   environment: the voicing environment encasing the vowel
+
+-   real_word: Is this word real or not real?
+
+-   age: The speaker's age
+
+-   years_uni: How many years the speaker has been in college/university
+
+-   sec: The speaker's sex
+
+-   ethnicity: The speaker's ethnicity/race
+
+-   birthplace: The speaker's place of birth
+
+-   home_state: The speaker's home state/country
+
+-   years_lived: How many years the speaker has lived in HI, expressed as a categorical range
+
+-   L1: The speaker's first language
+
+-   exposure_langs_yn: Yes/No whether the speaker had exposure to another language growing up
+
+-   exposure_langs: Which language(s) the speaker was exposed to growing up
+
+-   age_learned_en: The age the speaker learned English
+
+-   speak_other: Other languages spoken by the speaker
+
+### 
