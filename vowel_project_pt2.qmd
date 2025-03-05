@@ -38,7 +38,7 @@ Personal data:
 
 ```{r}
 # read in data
-P101 <- read_csv("data/P101.csv")
+P106 <- read_csv("data/P106.csv")
 
 # convert variables to factor where needed
 convert_to_factor <- function(df, cols) {
@@ -46,10 +46,10 @@ convert_to_factor <- function(df, cols) {
   return(df)
 }
 
-P101 <- convert_to_factor(P101, c("ppt", "word", "ipa", "arpa", "onset", "offset", "environment", "real_word", "sex", "ethnicity", "birthplace", "home_state", "years_lived_hi", "L1", "exposure_langs_yn", "exposure_langs", "speak_other", "item_num", "rep"))
+P106 <- convert_to_factor(P106, c("ppt", "word", "ipa", "arpa", "onset", "offset", "environment", "real_word", "sex", "ethnicity", "birthplace", "home_state", "years_lived_hi", "L1", "exposure_langs_yn", "exposure_langs", "speak_other", "item_num", "rep"))
 
 # remove a couple words you won't be needing
-P101 <- P101 %>%
+P106 <- P106 %>%
   dplyr::filter(!word %in% c("cot", "caught")) # added dplyr to specify which 'filter' to use
 
 ```
@@ -76,7 +76,7 @@ Many of you have outliers that are slightly skewing the data. Outliers are a nat
 ### Personal Plot
 
 ```{r}
-with(P101, plotVowels(f1, f2, ipa, plot.tokens = TRUE, pch.tokens = ipa, cex.tokens = 1.2, alpha.tokens = 0.2, plot.means = TRUE, pch.means = ipa, cex.means = 2, var.col.by = ipa, ellipse.line = TRUE, pretty = TRUE))
+with(P106, plotVowels(f1, f2, ipa, plot.tokens = TRUE, pch.tokens = ipa, cex.tokens = 1.2, alpha.tokens = 0.2, plot.means = TRUE, pch.means = ipa, cex.means = 2, var.col.by = ipa, ellipse.line = TRUE, pretty = TRUE))
 
 ```
 
@@ -94,16 +94,16 @@ Let's deal with some of these outliers. We are going to transform `f1` and `f2` 
 ## clean up outliers
 # convert f1 and f2 values to z-scores
 # z-scores help normalize the data
-P101_clean <- P101 %>%
+P106_clean <- P106 %>%
   group_by(ipa) %>% 
   mutate(
     f1_z = (f1 - mean(f1)) / sd(f1), # basic z-score transformation
     f2_z = (f2 - mean(f2)) / sd(f2)
   ) %>%
-  filter(abs(f1_z) <= 2, abs(f2_z) <= 2) # 2 to 3sd is typical for this type of data
+  filter(abs(f1_z) <= 1.5, abs(f2_z) <= 1.5) # 2 to 3sd is typical for this type of data
 
 ## plot the trimmed data
-with(P101_clean, plotVowels(f1, f2, ipa, plot.tokens = TRUE, pch.tokens = ipa, cex.tokens = 1.2, alpha.tokens = 0.2, plot.means = TRUE, pch.means = ipa, cex.means = 2, var.col.by = ipa, ellipse.line = TRUE, pretty = TRUE))
+with(P106_clean, plotVowels(f1, f2, ipa, plot.tokens = TRUE, pch.tokens = ipa, cex.tokens = 1.2, alpha.tokens = 0.2, plot.means = TRUE, pch.means = ipa, cex.means = 2, var.col.by = ipa, ellipse.line = TRUE, pretty = TRUE))
 
 # looks a lot cleaner, right?
 ```
@@ -127,7 +127,7 @@ all_clean <- all_data %>%
     f1_z = (f1 - mean(f1)) / sd(f1),
     f2_z = (f2 - mean(f2)) / sd(f2)
   ) %>%
-  filter(abs(f1_z) <= 3, abs(f2_z) <= 3)
+  filter(abs(f1_z) <= 1.25, abs(f2_z) <= 1.25)
 
 # plot clean data
 with(all_clean, plotVowels(f1, f2, ipa, plot.tokens = TRUE, pch.tokens = ipa, cex.tokens = 1.2, alpha.tokens = 0.2, plot.means = TRUE, pch.means = ipa, cex.means = 2, var.col.by = ipa, ellipse.line = TRUE, pretty = TRUE))
@@ -139,9 +139,9 @@ Note that for your statistical analyses, you will typically want to use the trim
 By the way, it's always good to check how much data is **lost** due to outlier trimming. There are a few ways to do this, but the easiest is to look at the number of observations you have and divide that by the number of observations you started with:
 
 ```{r}
-(1184/1201) * 100 # how much remains
+(881/1201) * 100 # how much remains
 
-(1 - (1184/1201)) * 100 # how much was lost
+(1 - (881/1201)) * 100 # how much was lost
 ```
 
 ## Generating Hypotheses
@@ -172,11 +172,11 @@ Extra tools:
 
 ### When to use which?
 
--   linear regression:
+-   linear regression: outcome variable is numeric
 
--   logistic regression:
+-   logistic regression: outcome variable is binary (categorical w/ 2 level)
 
--   mixed effects models (linear or logistic):
+-   mixed effects models (linear or logistic): include random effects to account to within-group similarities
 
 -   f1/f2 vs. f1_z/f2_z: raw values for comparing across speakers, z-scored values for comparisons within participant. I recommend just using the raw values and then invluding `ppt` as a random effect.
 
@@ -186,7 +186,21 @@ Use the below space to start exploring different analysis options. Use it for vi
 
 ```{r}
 
+m <- glm(sex ~ f0, data = all_clean, family = binomial)
+summary(m)
 
+m2 <- glm(sex ~ word, data = all_clean, family = binomial)
+summary(m2)
+
+m3 <- glm(sex ~ age, data = all_clean, family = binomial)
+summary(m3)
+
+m4 <- lm(f0 ~ age, data = all_clean)
+summary(m4)
+
+m5 <- lm(duration ~ home_state, data = all_clean)
+summary(m5)
+levels(all_clean$home_state)
 ```
 
 ## Variable Dictionary
