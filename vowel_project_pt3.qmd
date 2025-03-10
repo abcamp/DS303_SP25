@@ -1,0 +1,127 @@
+---
+title: "Vowel Analysis Final Report"
+author: 
+  - "Student Name"
+  - "DS303, SP25"
+  - "Prof. Amber Camp"
+date: 3/14/25
+format: html
+toc: true
+editor: visual
+theme: spacelab
+---
+
+## Vowel Analysis Final Report
+
+### Load packages
+
+```{r, echo = FALSE, message = FALSE}
+library(tidyverse)
+library(lme4)
+library(lmerTest)
+
+# install.packages("phonR")
+library(phonR)
+```
+
+## Load data
+
+Load your personal data (make sure you update from P101 -\> your P#)
+
+```{r}
+# read in data
+P101 <- read_csv("data/P101.csv")
+
+# convert variables to factor where needed
+convert_to_factor <- function(df, cols) {
+  df[cols] <- lapply(df[cols], as.factor)
+  return(df)
+}
+
+P101 <- convert_to_factor(P101, c("ppt", "word", "ipa", "arpa", "onset", "offset", "environment", "real_word", "sex", "ethnicity", "birthplace", "home_state", "years_lived_hi", "L1", "exposure_langs_yn", "exposure_langs", "speak_other", "item_num", "rep"))
+
+# remove a couple words you won't be needing
+P101 <- P101 %>%
+  dplyr::filter(!word %in% c("cot", "caught")) # added dplyr to specify which 'filter' to use
+
+```
+
+Class data:
+
+```{r}
+# read in data
+all_data <- read_csv("data/DS303_combined.csv")
+
+# convert variables to factor where needed
+all_data <- convert_to_factor(all_data, c("ppt", "word", "ipa", "arpa", "onset", "offset", "environment", "real_word", "sex", "ethnicity", "birthplace", "home_state", "years_lived_hi", "L1", "exposure_langs_yn", "exposure_langs", "speak_other", "item_num", "rep"))
+
+# remove a couple words you won't be needing
+all_data <- all_data %>%
+  dplyr::filter(!word %in% c("cot", "caught"))
+
+```
+
+## Explain the Data
+
+In paragraph form:
+
+-   Describe where the data comes from
+-   Summarize the contents of the data (how many observations, participants, items, etc.)
+-   Mention any preprocessing steps taken. For example, I pre-processed this data by removing words that were obviously mispronounced before even sending it to you. Then, above, you converted certain variables to factor and removed the words "cot" and "caught", which are not relevant to your investigation. Have you done any additional processing?
+
+## Variables of Interest
+
+For this project, you will explore and analyze the [**class-wide data set**]{.underline}. In paragraph form:
+
+-   Briefly introduce the purpose of this project
+-   Identify and explain your variables of interest
+-   State research questions or hypotheses about this data
+
+## EDA and Vowel Plots
+
+-   Generate two vowel plots using `phonR`: one for your own data, and one for class data
+
+-   In a couple sentences, state your observations. Do you see any patterns or differences?
+
+-   Include at least one visual that supports your hypothesis/justifies your models below, and explain
+
+```{r}
+
+```
+
+## Model Selection and Justification
+
+-   You will build and analyze **two different statistical models** to investigate the relationship between your predictors and outcome variable
+
+-   The two models should differ in some way (e.g., one could include an additional or interaction term while the other does not)
+
+-   What statistical models will you use to investigate the relationship between your predictors and outcome variable? (linear vs. logistic regression? mixed effects model?)
+
+-   Why did you select these models?
+
+-   Which variable(s) are included?
+
+```{r}
+
+```
+
+## Model Comparisons and Best Fit
+
+-   Build and run both models and display their summaries
+
+-   Compare the two models, assess model fit, and determine the better fitting one
+
+```{r}
+
+```
+
+## Interpretation of Results
+
+-   Interpret coefficients and significance
+-   Explain how the predictor variable(s) influence the outcome
+
+## Discussion and Conclusion
+
+-   Summarize key findings
+-   Discuss implications
+-   Mention limitations
