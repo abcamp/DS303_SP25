@@ -61,15 +61,19 @@ all_data <- all_data %>%
 
 ```
 
-## Explain the Data
+## Explain the Data 
+
+(1 point)
 
 In paragraph form:
 
 -   Describe where the data comes from
 -   Summarize the contents of the data (how many observations, participants, items, etc.)
--   Mention any preprocessing steps taken. For example, I pre-processed this data by removing words that were obviously mispronounced before even sending it to you. Then, above, you converted certain variables to factor and removed the words "cot" and "caught", which are not relevant to your investigation. Have you done any additional processing?
+-   Mention any pre-processing steps taken. For example, I pre-processed this data by removing words that were obviously mispronounced before even sending it to you. Then, above, you converted certain variables to factor and removed the words "cot" and "caught", which are not relevant to your investigation. Have you done any additional processing?
 
 ## Variables of Interest
+
+(1 point)
 
 For this project, you will explore and analyze the [**class-wide data set**]{.underline}. In paragraph form:
 
@@ -78,6 +82,8 @@ For this project, you will explore and analyze the [**class-wide data set**]{.un
 -   State research questions or hypotheses about this data
 
 ## EDA and Vowel Plots
+
+(3 points)
 
 -   Generate two vowel plots using `phonR`: one for your own data, and one for class data
 
@@ -90,6 +96,8 @@ For this project, you will explore and analyze the [**class-wide data set**]{.un
 ```
 
 ## Model Selection and Justification
+
+(3 points)
 
 -   You will build and analyze **two different statistical models** to investigate the relationship between your predictors and outcome variable
 
@@ -107,6 +115,8 @@ For this project, you will explore and analyze the [**class-wide data set**]{.un
 
 ## Model Comparisons and Best Fit
 
+(3 points)
+
 -   Build and run both models and display their summaries
 
 -   Compare the two models, assess model fit, and determine the better fitting one
@@ -117,10 +127,14 @@ For this project, you will explore and analyze the [**class-wide data set**]{.un
 
 ## Interpretation of Results
 
+(3 points)
+
 -   Interpret coefficients and significance
 -   Explain how the predictor variable(s) influence the outcome
 
 ## Discussion and Conclusion
+
+(3 points)
 
 -   Summarize key findings
 -   Discuss implications
