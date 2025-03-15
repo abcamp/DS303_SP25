@@ -1,0 +1,174 @@
+---
+title: "Vowel Analysis Final Report"
+author: 
+  - "Cade Garcia"
+  - "DS303, SP25"
+  - "Prof. Amber Camp"
+date: 3/14/25
+format: html
+toc: true
+editor: visual
+theme: spacelab
+---
+
+## Vowel Analysis Final Report
+
+### Load packages
+
+```{r, echo = FALSE, message = FALSE}
+library(tidyverse)
+library(lme4)
+library(lmerTest)
+
+# install.packages("phonR")
+library(phonR)
+```
+
+## Load data
+
+Load your personal data (make sure you update from P107 -\> your P#)
+
+```{r}
+# read in data
+P107 <- read_csv("data/P107.csv")
+
+# convert variables to factor where needed
+convert_to_factor <- function(df, cols) {
+  df[cols] <- lapply(df[cols], as.factor)
+  return(df)
+}
+
+P107 <- convert_to_factor(P107, c("ppt", "word", "ipa", "arpa", "onset", "offset", "environment", "real_word", "sex", "ethnicity", "birthplace", "home_state", "years_lived_hi", "L1", "exposure_langs_yn", "exposure_langs", "speak_other", "item_num", "rep"))
+
+# remove a couple words you won't be needing
+P107 <- P107 %>%
+  dplyr::filter(!word %in% c("cot", "caught")) # added dplyr to specify which 'filter' to use
+
+```
+
+Class data:
+
+```{r}
+# read in data
+all_data <- read_csv("data/DS303_combined.csv")
+
+# convert variables to factor where needed
+all_data <- convert_to_factor(all_data, c("ppt", "word", "ipa", "arpa", "onset", "offset", "environment", "real_word", "sex", "ethnicity", "birthplace", "home_state", "years_lived_hi", "L1", "exposure_langs_yn", "exposure_langs", "speak_other", "item_num", "rep"))
+
+# remove a couple words you won't be needing
+all_data <- all_data %>%
+  dplyr::filter(!word %in% c("cot", "caught"))
+
+```
+
+## Explain the Data
+
+(1 point)
+
+In paragraph form:
+
+The data we are working with comes from class audio recordings of my peers and myself reading a list of words at random. The other half of data (the demographic portion) comes from all of us filling out a survey which defines where we are from, sex, our primary language, and our exposure to different languages. The data set contains 26 columns and 100 rows. Some important columns contain information like tone/f0, Physical high and low frequency/f1, and physical front and back frequency/f2, and demographic data. Some rows were taken out in pre-processing to remove inconsistencies and prevent confusion like stuttering which would be faulty outliers.
+
+## Variables of Interest
+
+(1 point)
+
+For this project, you will explore and analyze the [**class-wide data set**]{.underline}. In paragraph form:
+
+The purpose of this project is to explore a deeper relationship between voice frequencies and how we pronounce words with demographic data. Some variables of interests are f0, f1, f2, and age. They could help us understand and visualize any relationships between age and how we pronounce words. I would like to explore the differences in the frequency variables across the different people in our class. I believe there will be a positive correlation between frequency and age.
+
+## EDA and Vowel Plots
+
+(3 points)
+
+-   Generate two vowel plots using `phonR`: one for your own data, and one for class data
+
+-   In a couple sentences, state your observations. Do you see any patterns or differences?
+
+    -   For my data, I find a lot of my f1 and f2 values show that when I speak, its more higher and frontwards in my mouth. In our dataset which definetly leans based on our class which has more 19-21 year olds, it shows that many of us speak withing a 1500-2500 f2 range and 200-800 f1 range. Other than clumping, there is not much linearity in this data.
+
+-   Include at least one visual that supports your hypothesis/justifies your models below, and explain
+
+This roughly supports my hypothesis because the majority of the class data clumps up.
+
+```{r}
+# Removing outliers in all_data
+all_clean <- all_data %>%
+  group_by(age) %>% 
+  mutate(
+    f1_z = (f1 - mean(f1)) / sd(f1),
+    f2_z = (f2 - mean(f2)) / sd(f2)
+  ) %>%
+  filter(abs(f1_z) <= 2.5, abs(f2_z) <= 2.5)
+  
+
+# Plotting 
+with(P107, plotVowels(f1, f2, var.col.by = age)) #wont print colors bc its all one age-- mine
+with(all_clean, plotVowels(f1, f2, plot.tokens = TRUE, pch.tokens = age, 
+    cex.tokens = 0.7, alpha.tokens = 0.8, plot.means = TRUE, pch.means = age, 
+    var.col.by = age, pretty = TRUE))
+```
+
+## Model Selection and Justification
+
+(3 points)
+
+-   You will build and analyze **two different statistical models** to investigate the relationship between your predictors and outcome variable
+
+-   The two models should differ in some way (e.g., one could include an additional or interaction term while the other does not)
+
+-   What statistical models will you use to investigate the relationship between your predictors and outcome variable? (linear vs. logistic regression? mixed effects model?)
+
+-   Why did you select these models?
+
+-   Which variable(s) are included?
+
+```{r}
+#Finding out if there is a relationship between age and f1/f2. I am using a linear modeling
+model <- lm(age ~ f1 + f2, data = all_clean)
+summary(model)
+
+model2 <- lm(age ~ f1 + f2 + f0, data = all_clean)
+summary(model2)
+
+#model3 <- lm(age ~ ., data = all_data) # can't get this to work for some reason!
+#summary(model3)
+```
+
+## Model Comparisons and Best Fit
+
+(3 points)
+
+-   Build and run both models and display their summaries
+
+-   Compare the two models, assess model fit, and determine the better fitting one
+
+```{r}
+#anova(model, model2) # Find statistical differences between the models... does not work?
+
+AIC(model, model2) #Use AIC to compare model fit while considering model complexity. Lower is better
+
+step(model, direction = "both") # Likely won't help as there are no significant predictors
+step(model2, direction = "both") # to begin with... it will remove them all
+```
+
+## Interpretation of Results
+
+(3 points)
+
+-   Interpret coefficients and significance
+    -   Focusing on model2 as the better model, its saying at the average age is 27 years old. The F-statistic (23.44) is large, and the p-value is almost zero, which strongly suggests that either f1 and f2 has a significant effect on age. The low R-squared (0.058) means the model explains 5.8% of the variance.
+-   Explain how the predictor variable(s) influence the outcome
+    -   Model1 tell us that f1 is a very significant predictor of age. Model2 however, says that f1and f2 are not significant predictors of age but f0 is a significant predictor. Since we're focusing on model2, for every 1 change in age, f0 will decrease by 0.031 hertz. In other words, the model is saying that the older someone is, the lower their tone will be.
+
+## Discussion and Conclusion
+
+(3 points)
+
+-   Summarize key findings
+    -   Overall, this model is not very good. The question I asked combined with the size of the data i'm using is not super significant. Comparing different models with f0 didn't seem to help much with predicting age.
+    -   With what it was given, our model is very statistically significant but I would have liked to see and compare all of the variables in the model to see which was the best predictor of age.
+-   Discuss implications
+    -   Predicting age as a concept is not the best idea! Especially with our class data which has a large bias of 19-21 year olds. But also the range of our class data is only 13 people, which could skew the results a little.
+-   Mention limitations
+    -   It is likely that adding more predictors to the model will help explain which is the most influential predictor of age. However because I kept hitting errors for model3 (see model codes above), I wouldnt know! If it did work however, I would run it and then do a stepwise comparison. All to say, **there is likely a more influential predictor of age in our class data** than f1 and f2.
