@@ -1,0 +1,225 @@
+---
+title: "Train/Test Split: Predictive Model Evaluation"
+format: html
+editor: visual
+---
+
+## Goal
+
+We’re shifting from *explaining predictive relationships* to *evaluating predictive performance*.\
+We’ll explore how a train/test split helps us assess how well our model performs on new data.
+
+By the end of this activity, you should be able to:
+
+-   Create a train/test split
+
+-   Fit models on training data
+
+-   Evaluate their performance on unseen test data
+
+-   Recognize signs of overfitting
+
+```{r}
+# install.packages("caret")
+# install.packages("Metrics")
+library(tidyverse)
+library(caret) # for splitting data, resampling, and model training
+library(Metrics) # for computing RMSE and other evaluation metrics
+set.seed(42) # sets a random seed so results are reproducible
+```
+
+## The Data
+
+We'll use the built-in `mtcars` dataset to predict `mpg` (miles per gallon).
+
+```{r}
+glimpse(mtcars)
+mtcars <- mtcars
+```
+
+## Step 1: Create a Train/Test Split
+
+We'll randomly split the data:
+
+-   80% training
+
+-   20% test
+
+```{r}
+train_index <- createDataPartition(mtcars$mpg, p = 0.8, list = FALSE)
+train_data <- mtcars[train_index, ]
+test_data <- mtcars[-train_index, ]
+```
+
+Syntax:
+
+-   `createDataPartition()` ensures the distribution of values in `mpg` is roughly the same in both the training and test sets. Note that it doesn't give you an *exact* proportion — it gives you an approximately stratified sample.
+
+    It tries to preserve the distribution of the outcome variable
+
+-   `mtcars$mpg` designates the outcome variable we are trying to predict
+
+-   `p = 0.8` says “Put 80% of the rows into the training set.”
+
+-   `list = FALSE`: By default, `createDataPartition()` returns a list. Setting `list = FALSE` makes it return a regular vector of row indices, which is easier to use for indexing.
+
+## Step 2: Fit Two Models on the Training Set
+
+-   A simple model: just `wt` (weight)
+
+-   A complex model: several predictors
+
+```{r}
+model_simple <- lm(mpg ~ wt, data = train_data)
+model_complex <- lm(mpg ~ wt + hp + disp + qsec, data = train_data)
+```
+
+Evaluate the two model outputs. Which is the better model? Which model has the higher Adjusted R² on the training set? Does that mean it’s the better model for prediction?
+
+-   Multiple R-squared: a basic measure of how well the model explains variance in the outcome
+
+-   Adjusted R-squared: adjusts for the number of predictors in the model
+
+```{r}
+summary(model_simple)
+summary(model_complex)
+```
+
+A higher R² is usually good, because it tells us the model captures more of the data. However, we have to be careful — a high R² on training data only could mean overfitting.
+
+So, let's look at the test set now:
+
+## Step 3: Predict on the Test Set
+
+Now let’s see how each model does when applied to new, unseen data.
+
+```{r}
+pred_simple <- predict(model_simple, test_data)
+pred_complex <- predict(model_complex, test_data)
+
+rmse(test_data$mpg, pred_simple)
+rmse(test_data$mpg, pred_complex)
+
+# if Metrics isn't working for you, here is the rmse caluclation:
+# rmse <- function(actual, predicted) {
+#   sqrt(mean((actual - predicted)^2))
+# }
+```
+
+Which model had lower RMSE (Root Mean Squared Error) on the test set?\
+Is that the same model that performed better on the training set?
+
+-   RMSE: measures how well a regression model’s predictions match the actual outcomes.
+
+-   It tells you, *on average*, how far off your predictions are — in the same units as your response variable.
+
+## Step 4: Compare Train and Test RMSE
+
+Let’s check the training RMSE too:
+
+```{r}
+rmse(train_data$mpg, predict(model_simple, train_data))
+rmse(train_data$mpg, predict(model_complex, train_data))
+```
+
+Does the complex model perform much better on the training set but worse on the test set?\
+What does that suggest about overfitting?
+
+### What We *Want* Is:
+
+-   High R² (or low RMSE) on the test set
+
+-   A small gap between training and test performance
+
+That’s the sweet spot: a model that fits well and generalizes. We're not looking for the model with the lowest R² — we're looking for the one that balances good performance on the training set *and* the test set.
+
+A model with high training R² but poor test performance is likely due to overfit — and that means it's *bad* for prediction.
+
+## Interpretation
+
+This is the ideal situation:
+
+-   The complex model fits the training data better and generalizes better to new data.
+
+-   This means the additional variables (even if their *individual p-values aren’t all significant*) are still helping the model predict better when used together.
+
+It’s not overfitting because:
+
+-   It’s not just doing better on training — it’s also doing better on test.
+
+-   If it were overfitting, you’d see the training RMSE drop but the test RMSE stay the same or get worse.
+
+## In Summary
+
+A good model will perform well on *both* the training set and the test set.
+
+------------------------------------------------------------------------
+
+## **Try It Yourself: Modeling with `diamonds`**
+
+Now try applying the same workflow to another dataset: `diamonds`
+
+**Your task:**
+
+-   Use a train/test split (e.g. 80/20).
+
+-   Try predicting `price` using at least one simple model and one complex model.
+
+-   Compare performance using RMSE on both training and test sets.
+
+-   Reflect: Did your more complex model generalize well?
+
+**Bonus:**
+
+-   What happens if you include categorical predictors (e.g., `cut`, `color`, `clarity`)?
+
+-   Can you improve the model by transforming or creating new variables?
+
+## Step 1: Create a Train/Test Split
+
+```{r}
+
+```
+
+## Step 2: Fit Two Models on the Training Set
+
+```{r}
+
+```
+
+## Step 3: Predict on the Test Set
+
+```{r}
+
+```
+
+## Step 4: Compare Train and Test RMSE
+
+```{r}
+
+```
+
+Which is the better model and why?
+
+------------------------------------------------------------------------
+
+## Footnote
+
+### Controlling the size of the training set
+
+If you want exactly 80% of the data and don't care about stratification, you can do:
+
+```{r}
+set.seed(42)
+train_index <- sample(1:nrow(mtcars), size = 0.8 * nrow(mtcars))
+```
+
+That will give exactly 25 rows — but it's completely random and doesn’t consider the distribution of `mpg`.
+
+### What about *p*-values?
+
+Should we remove predictors that do not have significant effects? Not necessarily!
+
+-   Even if `hp`, `disp`, and `qsec` aren't individually significant, they may be contributing *jointly* to prediction performance.
+
+-   The goal here is prediction, not explanation. We're not building the most interpretable model — we're trying to minimize error on new data
