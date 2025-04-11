@@ -1,0 +1,489 @@
+---
+title: "Cot vs. Caught"
+subtitle: "Exploring regional variations in speech"
+author: "Amber Camp"
+institute: "DS 303, Spring 2025"
+date: 3/31/25
+format:
+  revealjs:
+    highlight-style: arrow
+    slide-number: c/t
+    css: styles.css
+theme: moon
+editor: visual
+---
+
+## Outline
+
+::: footer
+Outline
+:::
+
+::: incremental
+-   The COT-CAUGHT Merger
+
+-   Research Question
+
+-   Data & Methods
+
+-   Analysis and Results
+
+-   Conclusion
+:::
+
+## The COT-CAUGHT Merger
+
+::: footer
+The COT-CAUGHT Merger
+:::
+
+::: incremental
+-   Mergers refer to sound changes in which two distinct words become the same over time
+-   This is often regional and/or generational
+-   The COT-CAUGHT merger refers specifically to the words *cot* and *caught*
+-   Do these words sound distinct to you?
+-   What about *bot/bought, pond/pawned, nod/gnawed*?
+:::
+
+## The COT-CAUGHT Merger in US English
+
+::: footer
+The COT-CAUGHT Merger
+:::
+
+-   This merger in US English involves two low back vowels:\
+    /ɑ/ and /ɔ/
+-   These two vowels are near each other in the vowel space
+-   The result of the merger is that *cot* and *caught* become homophones
+
+![](images/ipa-low-back.png){fig-align="center"}
+
+## What factors influence the Merger?
+
+::: footer
+The COT-CAUGHT Merger
+:::
+
+-   **Regional Variation:** Found in both urban and rural areas; varies even within regions
+-   **Age & Change:** Younger speakers show merger more than older ones
+-   **Partial Mergers:** Some merge only in casual speech or certain contexts
+
+## Regional Variation in the US
+
+::: footer
+The COT-CAUGHT Merger
+:::
+
+-   **The West**: The merger is nearly complete across the region
+-   **The Northeast** and **Inland North**: The contrast is strongly preserved
+-   **The Midwest**: The pattern is mixed — younger speakers often merge, older speakers usually don’t
+-   **The South**: The merger is less common, though scattered pockets exist
+
+<span class="small-text">(Labov et al., 2006)</span>
+
+## Variation Map
+
+::: footer
+The COT-CAUGHT Merger
+:::
+
+::: panel-tabset
+## Distribution
+
+![](images/katz.png){fig-align="center" width="600"}
+
+<span class="fig-source center">(Katz, 2013)</span>
+
+## Influence Centers
+
+![](images/centers.png){fig-align="center" width="600"}
+
+<span class="fig-source center">(Wolfram & Schilling, 2015)</span>
+:::
+
+## Research Question
+
+::: footer
+Research Question
+:::
+
+-   A few years have passed since there was a large-scale investigation into the distribution of the merger
+-   In that time, media may have accelerated the distribution
+
+::: {.fragment .highlight .center-align}
+What is the current state of the distribution of the 
+COT-CAUGHT merger and can this be predicted by region?
+:::
+
+## Data
+
+::: footer
+Data
+:::
+
+-   13 speakers (4 women, 9 men) from a university class
+-   Speakers from a range of US regional backgrounds
+-   Data collected for a larger project; relevant subset contains 78 total observations:
+    -   13 speakers × 2 items × 3 repetitions
+-   26 variables, including:
+    -   F1 and F2 to characterize the vowels
+    -   home state, to examine regionality
+
+## F1 and F2
+
+::: footer
+Data
+:::
+
+-   F1 and F2 refer to the first and second formants
+-   F1 and F2 are used to describe and define vowels across two dimensions:
+    -   F1 is inversely related to tongue height
+    -   F2 is related to frontness (vs. backness)
+
+## The vowel space
+
+::: footer
+Data
+:::
+
+![](images/midsag-chart.png){fig-align="center" height="500"}
+
+## Vowel Plot: All data
+
+::: footer
+Data
+:::
+
+```{r, include=FALSE}
+library(tidyverse)
+library(lme4)
+library(lmerTest)
+library(phonR)
+library(plotly)
+```
+
+```{r, include=FALSE}
+all_data <- read_csv("data/DS303_combined.csv")
+
+convert_to_factor <- function(df, cols) {
+  df[cols] <- lapply(df[cols], as.factor)
+  return(df)
+}
+
+all_data$gender <- all_data$sex
+
+all_data <- convert_to_factor(all_data, c("ppt", "word", "ipa", "arpa", "onset", "offset", "environment", "real_word", "sex", "ethnicity", "birthplace", "home_state", "years_lived_hi", "L1", "exposure_langs_yn", "exposure_langs", "speak_other", "item_num", "rep"))
+
+merger <- all_data %>%
+  dplyr::filter(word %in% c("cot", "caught"))
+```
+
+::: panel-tabset
+## All vowels
+
+```{r, echo=FALSE}
+all_clean <- all_data %>%
+  group_by(ppt, ipa) %>% # notice that we added ppt as a grouping
+  mutate(
+    f1_z = (f1 - mean(f1)) / sd(f1),
+    f2_z = (f2 - mean(f2)) / sd(f2)
+  ) %>%
+  filter(abs(f1_z) <= 1.25, abs(f2_z) <= 1.25)
+
+with(all_clean, plotVowels(f1, f2, ipa, plot.tokens = TRUE, pch.tokens = ipa, cex.tokens = 1.2, alpha.tokens = 0.2, plot.means = TRUE, pch.means = ipa, cex.means = 2, var.col.by = ipa, ellipse.line = TRUE, pretty = TRUE))
+```
+
+## COT-CAUGHT vowels
+
+```{r, echo=FALSE}
+with(merger, plotVowels(f1, f2, ipa, plot.tokens = TRUE, pch.tokens = ipa, cex.tokens = 1.2, alpha.tokens = 0.2, plot.means = TRUE, pch.means = ipa, cex.means = 2, var.col.by = ipa, ellipse.line = TRUE, pretty = TRUE))
+```
+:::
+
+## Examining Outlier Values
+
+```{r, echo=TRUE}
+ggplot(merger, aes(f2, f1, color = ipa)) +
+  geom_point() +
+  scale_x_reverse() +
+  scale_y_reverse()
+```
+
+```{r, echo=FALSE}
+p <- ggplot(merger, aes(x = f2, y = f1, color = ipa, label = home_state)) +
+  geom_point() +
+  scale_x_reverse() +
+  scale_y_reverse()
+
+ggplotly(p) %>%
+  layout(height = 400)
+```
+
+## Analysis and Results
+
+::: footer
+Analysis
+:::
+
+-   In my analysis, I included models for examining the relationship between:
+
+    -   Descriptive stats for F1 and F2
+
+    -   Word and F1/F2
+
+    -   Home State and F1/F2
+
+    -   Age, Gender, Ethnicity, and F1/F2
+
+## F1 and F2 Means
+
+::: footer
+Analysis
+:::
+
+```{r, echo=TRUE}
+merger %>%
+  group_by(word) %>%
+  summarise(
+    f1_min = min(f1, na.rm = TRUE),
+    f1_mean = mean(f1, na.rm = TRUE),
+    f1_max = max(f1, na.rm = TRUE),
+    f2_min = min(f2, na.rm = TRUE),
+    f2_mean = mean(f2, na.rm = TRUE),
+    f2_max = max(f2, na.rm = TRUE)
+  )
+```
+
+## Word and F1
+
+::: footer
+Analysis
+:::
+
+```{r, echo=TRUE}
+summary(lmer(f1 ~ word + (1|ppt), data = merger))
+```
+
+## Word and F2
+
+::: footer
+Analysis
+:::
+
+```{r, echo=TRUE}
+summary(lmer(f2 ~ word + (1|ppt), data = merger))
+```
+
+## Preliminary Finding: Word
+
+::: footer
+Analysis
+:::
+
+There is a significant effect (*p* \< 0.5) of word for predicting F1 and F2.
+
+-   This means that a difference between *cot* and *caught* was observed, at least in some cases
+
+-   This means that the merger is *not* "complete" in this sample
+
+## Adding Home State to the Model (F1)
+
+::: footer
+Analysis
+:::
+
+```{r, echo=TRUE}
+summary(lmer(f1 ~ word * home_state + (1|ppt), data = merger))
+```
+
+## Adding Home State to the Model (F2)
+
+::: footer
+Analysis
+:::
+
+```{r, echo=TRUE}
+summary(lmer(f2 ~ word * home_state + (1|ppt), data = merger))
+```
+
+## Preliminary Finding: Home State
+
+::: footer
+Analysis
+:::
+
+There is no significant main effects of `home_state` and no interactive effect with `word`
+
+-   This means that no region shows a distinctly bigger or smaller *cot*–*caught* difference than others
+-   There's no clear difference between *cot* and *caught* overall, which likely means they’re similar for many speakers
+
+## Conclusion
+
+::: footer
+Conclusion
+:::
+
+-   There is evidence of a difference between *cot* and *caught* in both F1 and F2 across speakers
+
+-   However, this difference is not significant across regions — some speakers are merged, some are not
+
+-   The results point toward an <span class="highlight">incomplete or in-progress merger</span>
+    (Note: The blue highlight here is from a custom css file)
+
+## Data Limitations
+
+::: footer
+Limitations
+:::
+
+-   Small, unbalanced data set
+-   Not enough tokens or participants
+-   Maybe looking at Euclidian Distance would be helpful?
+
+## References
+
+::: footer
+References
+:::
+
+:::: {.small-text .hanging-indent}
+Katz, J. (2013). *Beyond “soda, pop, or Coke”: Regional dialect variation in the continental US*. http://www4.ncsu.edu/\~jakatz2/project-dialect.html
+
+Labov, W., Ash, S., & Boberg, C. (2006). *The Atlas of North American English: Phonetics, phonology and sound change*. Mouton de Gruyter.
+
+Park, Yoon Soo & Lee, Young-Sun. (2011). Diagnostic cluster analysis of mathematics skills. *IERI Monograph Series: Issues and Methodologies in Large-Scale Assessments*. 4. 75-108.
+
+Wolfram, W., & Schilling, N. (2015). Regional varieties of English. In *American English: Dialects and variation* (3rd ed., pp. 203–231). Wiley Blackwell.
+
+::: highlight
+(Note: This slide uses styling from a css file.)
+:::
+::::
+
+# Bonus Slides
+
+## Age, Gender, Ethnicity, and F1
+
+```{r, echo=TRUE}
+summary(lmer(f1 ~ age + gender + ethnicity + (1|ppt), data = merger))
+```
+
+## Age, Gender, Ethnicity, and F2
+
+```{r, echo=TRUE}
+summary(lmer(f2 ~ age + gender + ethnicity + (1|ppt), data = merger))
+```
+
+## Redefining the Age Category
+
+```{r, echo=TRUE}
+merger$over23 <- ifelse(merger$age > 23, 1, 0)
+```
+
+```{r}
+summary(lmer(f1 ~ over23 + (1|ppt), data = merger))
+```
+
+## Birthplace and F1
+
+```{r, echo=TRUE}
+summary(lmer(f1 ~ birthplace + (1|ppt), data = merger))
+```
+
+## Birthplace and F2
+
+```{r, echo=TRUE}
+summary(lmer(f2 ~ birthplace  + (1|ppt), data = merger))
+```
+
+## Euclidean Distance
+
+**Euclidean distance** measures the straight-line distance between two points in vowel space (based on F1 and F2); a smaller distance means the vowels are more similar, indicating possible merger
+
+![](images/euclidean.png){fig-align="center" width="500"}
+
+<span class="fig-source center">(Lee, 2011)</span>
+
+## Euclidian Distance by Speaker
+
+```{r}
+speaker_distances <- merger %>%
+  filter(word %in% c("cot", "caught")) %>%
+  group_by(ppt, word) %>%
+  summarise(mean_f1 = mean(f1), mean_f2 = mean(f2), .groups = "drop") %>%
+  pivot_wider(names_from = word, values_from = c(mean_f1, mean_f2)) %>%
+  mutate(distance = sqrt((mean_f1_cot - mean_f1_caught)^2 +
+                         (mean_f2_cot - mean_f2_caught)^2))
+
+speaker_distances
+```
+
+## Speaker Distances
+
+```{r, echo=FALSE}
+speaker_distances <- speaker_distances %>%
+  mutate(merged = case_when(
+    distance < 150 ~ "Merged",
+    distance < 200 ~ "Borderline",
+    TRUE ~ "Unmerged"
+  ))
+
+ggplot(speaker_distances, aes(x = reorder(ppt, distance), y = distance, fill = merged)) +
+  geom_col() +
+  geom_hline(yintercept = 150, linetype = "dashed", color = "darkred") +
+  labs(title = "Cot–Caught Vowel Distance by Speaker",
+       x = "Speaker", y = "Euclidean Distance (Hz)") +
+  scale_fill_manual(values = c("Merged" = "steelblue", "Borderline" = "gold", "Unmerged" = "firebrick")) +
+  theme_minimal()
+```
+
+## Speaker Distance by Home State
+
+```{r, echo=FALSE}
+speaker_regions <- merger %>% select(ppt, home_state) %>% distinct()
+speaker_distances <- left_join(speaker_distances, speaker_regions, by = "ppt")
+
+ggplot(speaker_distances, aes(x = home_state, y = distance, fill = merged)) +
+  geom_col(position = "dodge") +
+  geom_hline(yintercept = 150, linetype = "dashed", color = "darkred") +
+  labs(title = "Speaker Merger Distance by Home State",
+       x = "Home State", y = "Euclidean Distance (Hz)") +
+  scale_fill_manual(values = c("Merged" = "steelblue", "Borderline" = "gold", "Unmerged" = "firebrick")) +
+  theme_minimal()
+```
+
+## Speaker Distance by Region
+
+::: panel-tabset
+## Mutate the data
+
+```{r, echo=TRUE}
+speaker_distances <- speaker_distances %>%
+  mutate(region = case_when(
+    home_state %in% c("CA", "WA", "NV") ~ "West",
+    home_state %in% c("PA", "NY") ~ "Northeast",
+    home_state %in% c("ND", "NE", "KS") ~ "Midwest",
+    home_state %in% c("OK", "TX") ~ "South",
+    home_state %in% c("HI", "Saipan") ~ "Pacific Islands",
+    TRUE ~ "Other"
+  ))
+```
+
+## Plot
+
+```{r, echo=FALSE}
+ggplot(speaker_distances, aes(x = region, y = distance, color = merged)) +
+  geom_jitter(width = 0.2, size = 3) +
+  geom_hline(yintercept = 150, linetype = "dashed", color = "gray40") +
+  labs(title = "Cot–Caught Distance by Region",
+       x = "Region", y = "Euclidean Distance (Hz)") +
+  scale_color_manual(values = c("Merged" = "steelblue", "Borderline" = "gold", "Unmerged" = "firebrick")) +
+  theme_minimal()
+```
+:::
+
+## Modeling Distance by Region
+
+```{r}
+summary(lm(distance ~ region, data = speaker_distances))
+```

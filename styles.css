@@ -1,0 +1,27 @@
+/* styles.css */
+
+.small-text {
+  font-size: 75%;
+}
+
+.tiny-text {
+  font-size: 50%;
+}
+
+.center-align {
+  text-align: center;
+}
+
+.highlight {
+  color: #4FC3F7;
+}
+
+.hanging-indent {
+  padding-left: 1.5em;
+  text-indent: -1.5em;
+}
+
+.fig-source.center {
+  text-align: center;
+  font-size: 50%;
+}
