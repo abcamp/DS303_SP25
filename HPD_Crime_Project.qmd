@@ -1,0 +1,198 @@
+---
+title: "Final Project"
+subtitle: "HPD Crime Data"
+author: "Cade Garcia"
+institute: "DS303, Chaminade University of Honolulu"
+data: "4/25/2025"
+format: 
+  revealjs:
+    theme: "moon"
+editor: visual
+---
+
+```{r}
+#| message: false
+#Libraries
+library(tidyverse)
+library(tidyverse)
+library(janitor)
+library(lubridate)
+library(skimr)
+library(ggplot2)
+library(plotly)
+```
+
+## Intro/Background
+
+::: incremental
+-   Data received from the HPD Crime Incidents page on data.honolulu.gov
+-   Originally had info meant for record keeping
+-   Contains data from Oct 2024 - April 2025 (7 mo)
+:::
+
+## Question
+
+::: nonincremental
+-   Are some types of crimes more likely to happen at specific times of day?
+:::
+
+## Data
+
+```{r}
+crime_raw <- read_csv("/Users/Cadeo/Documents/DS303 SP25/DS303_SP25/HPD_Crime_Incidents_20250407.csv") %>%
+  clean_names() 
+
+crime <- crime_raw %>%
+  mutate(
+    datetime = mdy_hms(date), # parse date/time
+    hour = hour(datetime), # hour of day (24-hr time)
+    wday = wday(datetime, label = TRUE), # get day of week & label it
+    is_weekend = wday %in% c("Sat", "Sun") # label weekend vs. weekday (binary)
+  ) %>%
+  select(incident_num, type, datetime, hour, wday, is_weekend) %>% # narrow down the dataframe to only these columns
+  filter(!is.na(hour), !is.na(type)) # drop incomplete rows (those with NAs)
+
+head(crime)
+```
+
+6D data with 15,804 rows
+
+## Exploratory Data Analysis 1
+
+::: panel-tabset
+### Vis 1
+
+```{r}
+crime %>%
+  count(type, sort = TRUE) %>%
+  ggplot(aes(x = reorder(type, n), y = n)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +  # optional: flips x and y for better readability
+  labs(title = "Number of Crimes by Type",
+       x = "Crime Type",
+       y = "Count") +
+  theme_minimal()
+```
+
+### Vis 2
+
+```{r}
+crime %>%
+  count(wday, sort = TRUE) %>%
+  mutate(wday = factor(wday, levels = c("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"))) %>%
+  ggplot(aes(x = wday, y = n)) +
+  geom_col(fill = "steelblue") +
+  labs(title = "Number of Crimes by Day",
+       x = "Day",
+       y = "Count") +
+  theme_minimal()
+
+```
+
+### Vis 3
+
+```{r}
+crime %>%
+  count(is_weekend, sort = TRUE) %>%
+  ggplot(aes(x = reorder(is_weekend, n), y = n)) +
+  geom_col(fill = "steelblue") +
+  labs(title = "Number of crimes week vs. weekend",
+       x = "The crime happened on a weekend",
+       y = "Count") +
+  theme_minimal()
+```
+:::
+
+## Exploratory Data Analysis 2
+
+```{r}
+p <- crime %>% 
+  ggplot(aes(x = hour, fill = type)) +
+  geom_histogram(binwidth = 1, position = "dodge") +
+  labs(title = "Crime Type by Hour of Day", x = "Hour", y = "Count")
+
+ggplotly(p) %>%
+    config(modeBarButtonsToRemove = c("zoom2d", "pan2d", "select2d", "lasso2d", "autoScale2d"))
+```
+
+## Exploratory Data Analysis 3
+
+```{r}
+# looking at whether crime is increasing or decreasing over time
+crime_by_day <- crime %>%
+  mutate(date = as.Date(datetime)) %>% # convert datetime to date (drops time component)
+  count(date) # count number of crimes per day 
+```
+
+```{r}
+crime_by_day <- crime_by_day[crime_by_day$date != "2025-04-07", ]
+
+ggplot(crime_by_day, aes(date, n)) +
+  geom_line() +
+  labs(title = "Crime Trend of the Whole Dataset",
+       y = "Number of crimes per day",
+       x = "Date")
+```
+
+## Model Prep
+
+Adds a column that defines violent and non-violent crimes
+
+```{r}
+#| echo: true
+#| message: true
+crime <- crime %>%
+  mutate(
+    crime_violent = case_when(
+      type %in% c("ASSAULT", "ROBBERY", "SEX CRIMES", "WEAPONS") ~ "violent",
+      TRUE ~ "non-violent"
+    ) %>%
+      factor()
+  )
+```
+
+```{r}
+crime$type <- as.factor(crime$type)
+crime$wday <- factor(crime$wday, ordered = FALSE)
+crime$is_weekend <- as.logical(crime$is_weekend)
+crime$is_weekend <- crime$is_weekend == "TRUE"
+
+crime$crime_violent <- as.factor(crime$crime_violent)
+```
+
+## Modeling
+
+::: panel-tabset
+### Model 1
+
+```{r}
+model <- lm(hour ~ type + wday, data = crime)
+summary(model)
+```
+
+### Model 2
+
+```{r}
+model2 <- lm(hour ~ type + wday + is_weekend:type, data = crime)
+summary(model2)
+```
+:::
+
+## Model Comparison
+
+```{r}
+anova(model, model2)
+```
+
+## Final Thoughts
+
+::: panel-tabset
+### Discussion
+
+Focusing on Model 2, The average time for crime is 12.21 (noon). The most significant type of crimes that influenced the model were Fraud, Vandalism, Burglary, Disturbing the peace, and Vehicle theft. The model shows no huge significance or deviation from the average for day of the week. DUIs and Disturbing the Peace crimes did happen more often during the weekends at 6AM and 8AM respectively.
+
+### Limitations
+
+-   Needs more data
+-   Yearly data would provide better comparison
+:::
